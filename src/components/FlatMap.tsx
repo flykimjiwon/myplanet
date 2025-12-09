@@ -28,6 +28,24 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
   const [airplanes, setAirplanes] = useState<Airplane[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const fullscreenSvgRef = useRef<SVGSVGElement>(null);
+  const [fullscreenButtonTop, setFullscreenButtonTop] = useState('calc(8px + 55px + 8px + 35px - 6px)');
+  
+  // 화면 크기에 따라 전체화면 버튼 위치 조정
+  useEffect(() => {
+    const updateButtonPosition = () => {
+      if (window.innerWidth >= 768) {
+        // md 화면 이상: top-6 (24px) - 6px (7px 위로 올림)
+        setFullscreenButtonTop('calc(24px + 55px + 8px + 35px - 6px)');
+      } else {
+        // 작은 화면: top-2 (8px) - 6px (7px 위로 올림)
+        setFullscreenButtonTop('calc(8px + 55px + 8px + 35px - 6px)');
+      }
+    };
+    
+    updateButtonPosition();
+    window.addEventListener('resize', updateButtonPosition);
+    return () => window.removeEventListener('resize', updateButtonPosition);
+  }, []);
 
   // 실제 세계지도 이미지 로드 시도 (정적 파일 사용)
   useEffect(() => {
@@ -221,7 +239,7 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
 
   return (
     <>
-      <div className="w-full h-full relative overflow-hidden" style={{ backgroundColor: '#FCECA3' }}>
+      <div className="w-full h-full relative overflow-y-auto lg:overflow-hidden" style={{ backgroundColor: '#FCECA3' }}>
         {/* 평면 세계지도 배경 */}
         <div className="relative w-full h-full">
           <svg
@@ -830,11 +848,14 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
         ))}
       </svg>
       
-      {/* 전체화면 버튼 - 이미지 아래 가운데에 배치 */}
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-2 z-50">
+      {/* 전체화면 버튼 - "지구는 평평하다!" 카드 바로 아래에 2-3px 간격으로 배치 */}
+      <div 
+        className="absolute left-1/2 transform -translate-x-1/2 z-50" 
+        style={{ top: fullscreenButtonTop }}
+      >
         <button
           onClick={() => setIsFullscreen(true)}
-          className="px-4 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95 flex items-center gap-2"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all active:scale-95 flex items-center gap-1.5 sm:gap-2"
           style={{
             backgroundColor: '#5AA8E5',
             border: '2px solid #1F6FB8',
@@ -848,7 +869,7 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
             e.currentTarget.style.backgroundColor = '#5AA8E5';
           }}
         >
-          <span>⛶</span>
+          <span className="text-sm sm:text-base">⛶</span>
           <span>전체화면</span>
         </button>
       </div>
@@ -866,7 +887,7 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
             onClick={(e) => e.stopPropagation()}
           >
             {/* 모달 헤더 */}
-            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-800">전체화면 지도</h2>
               <div className="flex gap-2">
                 <button
@@ -899,7 +920,7 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
             </div>
 
             {/* 원본 사이즈 SVG */}
-            <div className="p-4 overflow-auto">
+            <div className="px-4 pb-4 pt-0 overflow-auto">
               <svg
                 ref={fullscreenSvgRef}
                 viewBox="0 0 2000 1000"

@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
+    // 로그인 상태 확인
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.log('비로그인 사용자 접근:', { authError, user: !!user });
+      // 비로그인 사용자에게 로그인 메시지 반환
+      return NextResponse.json(
+        { 
+          error: '로그인하고 사용해!',
+          requiresAuth: true
+        },
+        { status: 401 }
+      );
+    }
+
     const { messages } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
@@ -147,8 +164,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('챗봇 API 오류:', error);
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
     return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
+      { 
+        error: '서버 오류가 발생했습니다.',
+        details: errorMessage
+      },
       { status: 500 }
     );
   }

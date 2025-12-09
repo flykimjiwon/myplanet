@@ -68,20 +68,41 @@ export default function AIChatbot({ isOpen, onClose }: AIChatbotProps) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData: any = {};
+        try {
+          const text = await response.text();
+          errorData = text ? JSON.parse(text) : {};
+        } catch (e) {
+          console.error('JSON 파싱 오류:', e);
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        
         const errorMsg = errorData.error || '응답을 받는 중 오류가 발생했습니다.';
         const detailsMsg = errorData.details?.error?.message || errorData.details?.message || '';
+        const requiresAuth = errorData.requiresAuth || response.status === 401;
         
-        console.error('❌ 챗봇 API 오류:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData.error,
-          details: errorData.details
-        });
+        // 401 (비로그인)은 정상 플로우이므로 에러가 아닌 로그로 표시
+        if (requiresAuth) {
+          console.log('ℹ️ 비로그인 사용자 접근:', {
+            status: response.status,
+            message: errorMsg
+          });
+        } else {
+          // 실제 에러인 경우에만 에러 로그 출력
+          console.error('❌ 챗봇 API 오류:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData.error,
+            details: errorData.details,
+            fullErrorData: errorData
+          });
+        }
         
-        // 할당량 초과 오류에 대한 특별 처리
+        // 비로그인 사용자 처리
         let userFriendlyMessage = '';
-        if (errorMsg.includes('quota') || errorMsg.includes('exceeded') || detailsMsg.includes('quota') || detailsMsg.includes('exceeded')) {
+        if (requiresAuth || errorMsg.includes('로그인하고 사용해')) {
+          userFriendlyMessage = '🔒 로그인하고 사용해!';
+        } else if (errorMsg.includes('quota') || errorMsg.includes('exceeded') || detailsMsg.includes('quota') || detailsMsg.includes('exceeded')) {
           userFriendlyMessage = `⚠️ API 할당량 초과\n\nOpenAI API의 사용 할당량이 초과되었습니다.\n\n해결 방법:\n1. OpenAI 플랫폼(https://platform.openai.com)에서 계정 확인\n2. 결제 정보 설정 및 크레딧 추가\n3. 사용 플랜 확인\n\n일시적으로 사용할 수 없습니다. 죄송합니다. 😔`;
         } else {
           userFriendlyMessage = `⚠️ ${errorMsg}\n\n${detailsMsg ? `자세한 오류: ${detailsMsg}` : '알 수 없는 오류가 발생했습니다.'}\n\n잠시 후 다시 시도해주세요.`;

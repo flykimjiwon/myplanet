@@ -43,6 +43,27 @@ export default function Home() {
   const [isDraggingStats, setIsDraggingStats] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+  // 인앱 브라우저 주소창 대응: 실제 뷰포트 높이 계산
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+    
+    // 인앱 브라우저에서 주소창이 사라질 때를 대비한 지연 실행
+    setTimeout(setVH, 100);
+    setTimeout(setVH, 500);
+    
+    return () => {
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', setVH);
+    };
+  }, []);
+
   // 클라이언트에서만 마운트되도록 처리 (hydration 오류 방지)
   useEffect(() => {
     setMounted(true);
@@ -303,7 +324,12 @@ export default function Home() {
   }
 
   return (
-    <main className="h-screen w-screen overflow-hidden" style={{ backgroundColor: '#FCECA3' }}>
+    <main className="w-screen overflow-hidden" style={{ 
+      backgroundColor: '#FCECA3',
+      height: 'calc(var(--vh, 1vh) * 100)',
+      minHeight: 'calc(var(--vh, 1vh) * 100)',
+      maxHeight: 'calc(var(--vh, 1vh) * 100)'
+    }}>
       {/* 이메일 인증 안내 배너 */}
       {isAuthenticated && <EmailVerificationBanner />}
       
@@ -384,14 +410,14 @@ export default function Home() {
           </div>
 
         {/* 지구본/지도 뷰 */}
-        <div className="flex-1 h-[72%] lg:h-full relative flex flex-col overflow-hidden">
+        <div className="flex-1 h-[65%] sm:h-[72%] lg:h-full relative flex flex-col overflow-hidden min-h-[300px]">
           {/* 모드 토글 */}
           <div className="absolute top-2 md:top-6 left-1/2 transform -translate-x-1/2 z-10">
             <ModeToggle mode={mode} onToggle={(newMode) => toggleMode(newMode)} />
           </div>
 
-          {/* 뷰 영역 */}
-          <div className="flex-1 relative">
+          {/* 뷰 영역 - 모바일에서 스크롤 가능 */}
+          <div className="flex-1 relative overflow-y-auto lg:overflow-hidden">
             {mode === 'globe' ? (
               <>
                 <Scene 
@@ -404,13 +430,13 @@ export default function Home() {
                   }}
                 />
                 
-                {/* 안내 텍스트 */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full" style={{ 
+                {/* 안내 텍스트 - 모바일에서 지구본에 가깝게 배치 */}
+                <div className="absolute bottom-8 sm:bottom-12 md:bottom-16 lg:bottom-4 left-1/2 transform -translate-x-1/2 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full" style={{ 
                   backgroundColor: '#5AA8E5', 
                   border: '2px solid #1F6FB8',
                   boxShadow: '0 4px 8px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)'
                 }}>
-                  <p className="text-xs md:text-sm text-center font-semibold" style={{ color: '#FFFFFF' }}>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-center font-semibold whitespace-nowrap" style={{ color: '#FFFFFF' }}>
                     🖱️ 드래그로 회전 | 스크롤로 확대/축소
                   </p>
                 </div>
@@ -460,9 +486,9 @@ export default function Home() {
                   right: 'auto',
                 } : {
                   bottom: '8px',
-                  right: '8px',
+                  left: '8px',
                   top: 'auto',
-                  left: 'auto',
+                  right: 'auto',
                 }),
               }}
               onMouseDown={handleStatsMouseDown}

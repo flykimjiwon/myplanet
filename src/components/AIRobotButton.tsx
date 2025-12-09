@@ -10,7 +10,7 @@ export default function AIRobotButton() {
     <>
       <button
         onClick={() => setIsChatbotOpen(true)}
-        className="fixed bottom-4 left-4 z-40 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+        className="fixed bottom-4 right-4 z-40 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
         style={{ opacity: 0.9 }}
         aria-label="AI 여행지 추천 챗봇 열기"
       >
