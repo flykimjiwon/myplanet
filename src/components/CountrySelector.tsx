@@ -9,7 +9,19 @@ interface CountrySelectorProps {
   onToggleCountry: (code: string) => void;
   onIncreaseVisits: (code: string) => void;
   onDecreaseVisits: (code: string) => void;
+  onResetAll: () => void;
 }
+
+// 대륙별 아이콘 및 색상
+const continentStyles: Record<string, { icon: string; color: string; bgColor: string }> = {
+  "전체": { icon: "🌍", color: "text-blue-400", bgColor: "from-blue-500/20 to-blue-600/20 border-blue-500/50" },
+  "아시아": { icon: "🏯", color: "text-red-400", bgColor: "from-red-500/20 to-red-600/20 border-red-500/50" },
+  "아프리카": { icon: "🦁", color: "text-amber-400", bgColor: "from-amber-500/20 to-amber-600/20 border-amber-500/50" },
+  "유럽": { icon: "🏰", color: "text-indigo-400", bgColor: "from-indigo-500/20 to-indigo-600/20 border-indigo-500/50" },
+  "북아메리카": { icon: "🗽", color: "text-emerald-400", bgColor: "from-emerald-500/20 to-emerald-600/20 border-emerald-500/50" },
+  "남아메리카": { icon: "🌴", color: "text-green-400", bgColor: "from-green-500/20 to-green-600/20 border-green-500/50" },
+  "오세아니아": { icon: "🦘", color: "text-cyan-400", bgColor: "from-cyan-500/20 to-cyan-600/20 border-cyan-500/50" },
+};
 
 export default function CountrySelector({
   countries,
@@ -17,13 +29,16 @@ export default function CountrySelector({
   onToggleCountry,
   onIncreaseVisits,
   onDecreaseVisits,
+  onResetAll,
 }: CountrySelectorProps) {
   const [selectedContinent, setSelectedContinent] = useState<string>("전체");
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCountries = countries.filter((country) => {
     const matchesContinent = selectedContinent === "전체" || country.continent === selectedContinent;
-    const matchesSearch = country.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = 
+      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      country.nameEn.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesContinent && matchesSearch;
   });
 
@@ -32,129 +47,270 @@ export default function CountrySelector({
   const percentage = Math.round((visitedCount / totalCount) * 100);
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-2xl">
+    <div className="flex flex-col h-full p-4 lg:p-6 rounded-2xl shadow-lg" style={{ 
+      backgroundColor: '#5AA8E5', 
+      border: '2px solid #1F6FB8',
+      transition: 'height 0.3s ease-in-out',
+    }}>
       {/* 헤더 */}
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+      <div className="mb-4">
+        <h1 className="text-2xl lg:text-3xl font-bold mb-1.5" style={{ color: '#F8D348', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
           🌍 My Planet
         </h1>
-        <p className="text-slate-400 text-sm">
+        <p className="text-xs font-medium opacity-90" style={{ color: '#FFFFFF' }}>
           지구본을 돌려보세요! 당신의 여행 기록을 확인하세요
         </p>
       </div>
 
       {/* 통계 */}
-      <div className="mb-6 p-4 bg-slate-800 rounded-xl border border-slate-700">
+      <div className="mb-4 p-3 rounded-xl" style={{ 
+        backgroundColor: '#1F6FB8', 
+        border: '2px solid #163C69',
+        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.15)'
+      }}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-slate-400 text-sm">방문한 국가</span>
-          <span className="text-2xl font-bold text-blue-400">
+          <span className="text-xs font-semibold" style={{ color: '#FFFFFF' }}>방문한 국가</span>
+          <span className="text-lg lg:text-xl font-bold" style={{ color: '#F8D348' }}>
             {visitedCount} / {totalCount}
           </span>
         </div>
-        <div className="w-full bg-slate-700 rounded-full h-2 mb-1">
+        <div className="w-full rounded-full h-2.5 mb-1.5" style={{ 
+          backgroundColor: '#163C69',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
+        }}>
           <div
-            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${percentage}%` }}
+            className="h-2.5 rounded-full transition-all duration-300"
+            style={{ 
+              width: `${percentage}%`, 
+              backgroundColor: '#F8D348',
+              boxShadow: '0 2px 4px rgba(248, 211, 72, 0.4), inset 0 -1px 2px rgba(0,0,0,0.1)'
+            }}
           />
         </div>
-        <p className="text-xs text-slate-400 text-right">
-          세계 정복률 {percentage}%
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-right font-semibold" style={{ color: '#F8D348' }}>
+            세계 정복률 {percentage}%
+          </p>
+          {visitedCount > 0 && (
+            <button
+              onClick={onResetAll}
+              className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all active:scale-95"
+              style={{
+                backgroundColor: '#EA3E38',
+                border: '2px solid #D72C2A',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#D72C2A';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#EA3E38';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)';
+              }}
+            >
+              초기화
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 검색 */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="🔍 국가 검색..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <div className="mb-3">
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl" style={{ color: '#F8D348' }}>🔍</span>
+          <input
+            type="text"
+            placeholder="국가 검색 (한글/영어)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 rounded-lg focus:outline-none text-base font-medium transition-all"
+            style={{ 
+              backgroundColor: '#E3F2FD', 
+              border: '2px solid #1F6FB8',
+              color: '#163C69',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#F8D348';
+              e.target.style.backgroundColor = '#FFFFFF';
+              e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 3px rgba(248, 211, 72, 0.2), 0 2px 4px rgba(0,0,0,0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#1F6FB8';
+              e.target.style.backgroundColor = '#E3F2FD';
+              e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)';
+            }}
+          />
+        </div>
       </div>
 
       {/* 대륙 필터 */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          onClick={() => setSelectedContinent("전체")}
-          className={`px-3 py-1 rounded-full text-sm transition-all ${
-            selectedContinent === "전체"
-              ? "bg-blue-500 text-white"
-              : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-          }`}
-        >
-          전체
-        </button>
-        {continents.map((continent) => (
-          <button
-            key={continent}
-            onClick={() => setSelectedContinent(continent)}
-            className={`px-3 py-1 rounded-full text-sm transition-all ${
-              selectedContinent === continent
-                ? "bg-blue-500 text-white"
-                : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-            }`}
-          >
-            {continent}
-          </button>
-        ))}
+      <div className="mb-3">
+        <div className="grid grid-cols-7 gap-1 lg:grid-cols-4 lg:gap-1.5">
+          {["전체", ...continents].map((continent) => {
+            const style = continentStyles[continent] || continentStyles["전체"];
+            const isSelected = selectedContinent === continent;
+            const countryCount = continent === "전체" 
+              ? countries.length 
+              : countries.filter(c => c.continent === continent).length;
+            
+            return (
+              <button
+                key={continent}
+                onClick={() => setSelectedContinent(continent)}
+                className="flex flex-col items-center p-1 lg:p-1.5 rounded-lg transition-all duration-200 border-2 active:scale-95"
+                style={isSelected ? {
+                  backgroundColor: '#F8D348',
+                  borderColor: '#F2B705',
+                  color: '#163C69',
+                  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.2), inset 0 -2px 2px rgba(0,0,0,0.1)'
+                } : {
+                  backgroundColor: '#E3F2FD',
+                  borderColor: '#1F6FB8',
+                  color: '#163C69',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = '#BBDEFB';
+                    e.currentTarget.style.borderColor = '#5AA8E5';
+                    e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.5)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = '#E3F2FD';
+                    e.currentTarget.style.borderColor = '#1F6FB8';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)';
+                  }
+                }}
+              >
+                <span className="text-base lg:text-base mb-0.5">{style.icon}</span>
+                <span className="text-[9px] lg:text-[9px] font-semibold whitespace-nowrap leading-tight">
+                  {continent === "북아메리카" ? "북미" : continent === "남아메리카" ? "남미" : continent}
+                </span>
+                <span className="text-[8px] lg:text-[8px] opacity-80">
+                  {countryCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 국가 목록 */}
-      <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-        {filteredCountries.map((country) => {
-          const visits = visitedCountries.get(country.code) || 0;
-          const isVisited = visits > 0;
-          return (
-            <div
-              key={country.code}
-              className={`w-full p-3 rounded-lg transition-all ${
-                isVisited
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg"
-                  : "bg-slate-800"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => onToggleCountry(country.code)}
-                  className="flex items-center gap-3 flex-1"
-                >
-                  <span className="text-2xl">{country.flag}</span>
-                  <div className="text-left">
-                    <p className="font-medium">{country.name}</p>
-                    <p className="text-xs text-slate-400">{country.continent}</p>
-                  </div>
-                </button>
-                
-                {isVisited && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDecreaseVisits(country.code);
-                      }}
-                      className="w-7 h-7 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white font-bold transition-all"
-                    >
-                      −
-                    </button>
-                    <div className="min-w-[60px] text-center">
-                      <p className="text-yellow-400 font-bold text-lg">{visits}회</p>
+      <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+        {filteredCountries.length === 0 ? (
+          <div className="text-center py-8" style={{ color: '#F8D348' }}>
+            <p className="text-4xl mb-2">🔍</p>
+            <p className="text-sm font-semibold">검색 결과가 없습니다</p>
+          </div>
+        ) : (
+          filteredCountries.map((country) => {
+            const visits = visitedCountries.get(country.code) || 0;
+            const isVisited = visits > 0;
+            return (
+              <div
+                key={country.code}
+                className="w-full p-2.5 rounded-lg transition-all duration-200 border-2"
+                style={isVisited ? {
+                  backgroundColor: '#EA3E38',
+                  borderColor: '#D72C2A',
+                  color: '#FFFFFF',
+                  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.2), inset 0 -2px 2px rgba(0,0,0,0.1)'
+                } : {
+                  backgroundColor: '#E3F2FD',
+                  borderColor: '#1F6FB8',
+                  color: '#163C69',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isVisited) {
+                    e.currentTarget.style.backgroundColor = '#BBDEFB';
+                    e.currentTarget.style.borderColor = '#5AA8E5';
+                    e.currentTarget.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.5)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isVisited) {
+                    e.currentTarget.style.backgroundColor = '#E3F2FD';
+                    e.currentTarget.style.borderColor = '#1F6FB8';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)';
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => onToggleCountry(country.code)}
+                    className="flex items-center gap-2.5 flex-1 min-w-0"
+                  >
+                    <span className="text-xl flex-shrink-0">{country.flag}</span>
+                    <div className="text-left min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate" style={{ color: isVisited ? '#FFFFFF' : '#163C69' }}>{country.name}</p>
+                      <p className="text-xs truncate opacity-80" style={{ color: isVisited ? '#F8D348' : '#5AA8E5' }}>{country.nameEn} · {country.continent}</p>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onIncreaseVisits(country.code);
-                      }}
-                      className="w-7 h-7 rounded-full bg-yellow-500 hover:bg-yellow-400 flex items-center justify-center text-slate-900 font-bold transition-all"
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
+                  </button>
+                  
+                  {isVisited && (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDecreaseVisits(country.code);
+                        }}
+                        className="w-7 h-7 rounded-md flex items-center justify-center font-bold transition-all text-sm border-2 active:scale-90"
+                        style={{ 
+                          backgroundColor: '#D72C2A',
+                          borderColor: '#A8201A',
+                          color: '#FFFFFF',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.2)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#A8201A';
+                          e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#D72C2A';
+                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.2)';
+                        }}
+                      >
+                        −
+                      </button>
+                      <div className="min-w-[40px] text-center">
+                        <p className="font-bold text-sm" style={{ color: '#F8D348' }}>{visits}회</p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onIncreaseVisits(country.code);
+                        }}
+                        className="w-7 h-7 rounded-md flex items-center justify-center font-bold transition-all text-sm border-2 active:scale-90"
+                        style={{ 
+                          backgroundColor: '#F8D348',
+                          borderColor: '#F2B705',
+                          color: '#163C69',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#F2B705';
+                          e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(0,0,0,0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#F8D348';
+                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)';
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       <style jsx>{`
@@ -162,18 +318,17 @@ export default function CountrySelector({
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1e293b;
+          background: #1F6FB8;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #475569;
+          background: #F8D348;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #64748b;
+          background: #F2B705;
         }
       `}</style>
     </div>
   );
 }
-

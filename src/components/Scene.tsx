@@ -8,16 +8,17 @@ import { Country } from '@/lib/countries';
 interface SceneProps {
   visitedCountries: Map<string, number>;
   countries: Country[];
+  onSelectCountry?: (country: Country) => void;
 }
 
-export default function Scene({ visitedCountries, countries }: SceneProps) {
+export default function Scene({ visitedCountries, countries, onSelectCountry }: SceneProps) {
   return (
     <div className="w-full h-full">
       <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
-        {/* 조명 */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <pointLight position={[-10, -10, -5]} intensity={0.5} />
+        {/* 조명 - 더 밝게 */}
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[10, 10, 5]} intensity={1.5} />
+        <pointLight position={[-10, -10, -5]} intensity={0.8} />
 
         {/* 별 배경 */}
         <Stars

@@ -1,5 +1,6 @@
 export interface Country {
   name: string;
+  nameEn: string;
   code: string;
   continent: string;
   lat: number;
@@ -7,62 +8,226 @@ export interface Country {
   flag: string;
 }
 
+// ISO 코드를 깃발 이모지로 변환하는 함수
+function getFlagEmoji(countryCode: string): string {
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
 export const countries: Country[] = [
-  // 아시아
-  { name: "대한민국", code: "KR", continent: "아시아", lat: 37.5665, lng: 126.9780, flag: "🇰🇷" },
-  { name: "일본", code: "JP", continent: "아시아", lat: 35.6762, lng: 139.6503, flag: "🇯🇵" },
-  { name: "중국", code: "CN", continent: "아시아", lat: 39.9042, lng: 116.4074, flag: "🇨🇳" },
-  { name: "태국", code: "TH", continent: "아시아", lat: 13.7563, lng: 100.5018, flag: "🇹🇭" },
-  { name: "베트남", code: "VN", continent: "아시아", lat: 21.0285, lng: 105.8542, flag: "🇻🇳" },
-  { name: "싱가포르", code: "SG", continent: "아시아", lat: 1.3521, lng: 103.8198, flag: "🇸🇬" },
-  { name: "말레이시아", code: "MY", continent: "아시아", lat: 3.1390, lng: 101.6869, flag: "🇲🇾" },
-  { name: "인도네시아", code: "ID", continent: "아시아", lat: -6.2088, lng: 106.8456, flag: "🇮🇩" },
-  { name: "필리핀", code: "PH", continent: "아시아", lat: 14.5995, lng: 120.9842, flag: "🇵🇭" },
-  { name: "인도", code: "IN", continent: "아시아", lat: 28.6139, lng: 77.2090, flag: "🇮🇳" },
-  { name: "대만", code: "TW", continent: "아시아", lat: 25.0330, lng: 121.5654, flag: "🇹🇼" },
-  { name: "홍콩", code: "HK", continent: "아시아", lat: 22.3193, lng: 114.1694, flag: "🇭🇰" },
-  
-  // 유럽
-  { name: "영국", code: "GB", continent: "유럽", lat: 51.5074, lng: -0.1278, flag: "🇬🇧" },
-  { name: "프랑스", code: "FR", continent: "유럽", lat: 48.8566, lng: 2.3522, flag: "🇫🇷" },
-  { name: "독일", code: "DE", continent: "유럽", lat: 52.5200, lng: 13.4050, flag: "🇩🇪" },
-  { name: "이탈리아", code: "IT", continent: "유럽", lat: 41.9028, lng: 12.4964, flag: "🇮🇹" },
-  { name: "스페인", code: "ES", continent: "유럽", lat: 40.4168, lng: -3.7038, flag: "🇪🇸" },
-  { name: "네덜란드", code: "NL", continent: "유럽", lat: 52.3676, lng: 4.9041, flag: "🇳🇱" },
-  { name: "스위스", code: "CH", continent: "유럽", lat: 46.9479, lng: 7.4474, flag: "🇨🇭" },
-  { name: "오스트리아", code: "AT", continent: "유럽", lat: 48.2082, lng: 16.3738, flag: "🇦🇹" },
-  { name: "그리스", code: "GR", continent: "유럽", lat: 37.9838, lng: 23.7275, flag: "🇬🇷" },
-  { name: "포르투갈", code: "PT", continent: "유럽", lat: 38.7223, lng: -9.1393, flag: "🇵🇹" },
-  { name: "체코", code: "CZ", continent: "유럽", lat: 50.0755, lng: 14.4378, flag: "🇨🇿" },
-  { name: "러시아", code: "RU", continent: "유럽", lat: 55.7558, lng: 37.6173, flag: "🇷🇺" },
-  
-  // 북미
-  { name: "미국", code: "US", continent: "북미", lat: 40.7128, lng: -74.0060, flag: "🇺🇸" },
-  { name: "캐나다", code: "CA", continent: "북미", lat: 43.6532, lng: -79.3832, flag: "🇨🇦" },
-  { name: "멕시코", code: "MX", continent: "북미", lat: 19.4326, lng: -99.1332, flag: "🇲🇽" },
-  
-  // 남미
-  { name: "브라질", code: "BR", continent: "남미", lat: -23.5505, lng: -46.6333, flag: "🇧🇷" },
-  { name: "아르헨티나", code: "AR", continent: "남미", lat: -34.6037, lng: -58.3816, flag: "🇦🇷" },
-  { name: "칠레", code: "CL", continent: "남미", lat: -33.4489, lng: -70.6693, flag: "🇨🇱" },
-  { name: "페루", code: "PE", continent: "남미", lat: -12.0464, lng: -77.0428, flag: "🇵🇪" },
-  
-  // 오세아니아
-  { name: "호주", code: "AU", continent: "오세아니아", lat: -33.8688, lng: 151.2093, flag: "🇦🇺" },
-  { name: "뉴질랜드", code: "NZ", continent: "오세아니아", lat: -36.8485, lng: 174.7633, flag: "🇳🇿" },
-  
-  // 중동
-  { name: "아랍에미리트", code: "AE", continent: "중동", lat: 25.2048, lng: 55.2708, flag: "🇦🇪" },
-  { name: "터키", code: "TR", continent: "중동", lat: 41.0082, lng: 28.9784, flag: "🇹🇷" },
-  { name: "이스라엘", code: "IL", continent: "중동", lat: 32.0853, lng: 34.7818, flag: "🇮🇱" },
-  
-  // 아프리카
-  { name: "이집트", code: "EG", continent: "아프리카", lat: 30.0444, lng: 31.2357, flag: "🇪🇬" },
-  { name: "남아프리카공화국", code: "ZA", continent: "아프리카", lat: -33.9249, lng: 18.4241, flag: "🇿🇦" },
-  { name: "모로코", code: "MA", continent: "아프리카", lat: 33.9716, lng: -6.8498, flag: "🇲🇦" },
+  // 🟦 아시아 (49개국)
+  { name: "아프가니스탄", nameEn: "Afghanistan", code: "AF", continent: "아시아", lat: 34.5553, lng: 69.2075, flag: getFlagEmoji("AF") },
+  { name: "아르메니아", nameEn: "Armenia", code: "AM", continent: "아시아", lat: 40.1811, lng: 44.5136, flag: getFlagEmoji("AM") },
+  { name: "아제르바이잔", nameEn: "Azerbaijan", code: "AZ", continent: "아시아", lat: 40.4093, lng: 49.8671, flag: getFlagEmoji("AZ") },
+  { name: "바레인", nameEn: "Bahrain", code: "BH", continent: "아시아", lat: 26.0667, lng: 50.5577, flag: getFlagEmoji("BH") },
+  { name: "방글라데시", nameEn: "Bangladesh", code: "BD", continent: "아시아", lat: 23.8103, lng: 90.4125, flag: getFlagEmoji("BD") },
+  { name: "부탄", nameEn: "Bhutan", code: "BT", continent: "아시아", lat: 27.4728, lng: 89.6390, flag: getFlagEmoji("BT") },
+  { name: "브루나이", nameEn: "Brunei", code: "BN", continent: "아시아", lat: 4.9031, lng: 114.9398, flag: getFlagEmoji("BN") },
+  { name: "캄보디아", nameEn: "Cambodia", code: "KH", continent: "아시아", lat: 11.5564, lng: 104.9282, flag: getFlagEmoji("KH") },
+  { name: "중국", nameEn: "China", code: "CN", continent: "아시아", lat: 39.9042, lng: 116.4074, flag: getFlagEmoji("CN") },
+  { name: "키프로스", nameEn: "Cyprus", code: "CY", continent: "아시아", lat: 35.1856, lng: 33.3823, flag: getFlagEmoji("CY") },
+  { name: "조지아", nameEn: "Georgia", code: "GE", continent: "아시아", lat: 41.7151, lng: 44.8271, flag: getFlagEmoji("GE") },
+  { name: "인도", nameEn: "India", code: "IN", continent: "아시아", lat: 28.6139, lng: 77.2090, flag: getFlagEmoji("IN") },
+  { name: "인도네시아", nameEn: "Indonesia", code: "ID", continent: "아시아", lat: -6.2088, lng: 106.8456, flag: getFlagEmoji("ID") },
+  { name: "이란", nameEn: "Iran", code: "IR", continent: "아시아", lat: 35.6892, lng: 51.3890, flag: getFlagEmoji("IR") },
+  { name: "이라크", nameEn: "Iraq", code: "IQ", continent: "아시아", lat: 33.3152, lng: 44.3661, flag: getFlagEmoji("IQ") },
+  { name: "이스라엘", nameEn: "Israel", code: "IL", continent: "아시아", lat: 31.7683, lng: 35.2137, flag: getFlagEmoji("IL") },
+  { name: "일본", nameEn: "Japan", code: "JP", continent: "아시아", lat: 35.6762, lng: 139.6503, flag: getFlagEmoji("JP") },
+  { name: "요르단", nameEn: "Jordan", code: "JO", continent: "아시아", lat: 31.9539, lng: 35.9106, flag: getFlagEmoji("JO") },
+  { name: "카자흐스탄", nameEn: "Kazakhstan", code: "KZ", continent: "아시아", lat: 51.1694, lng: 71.4491, flag: getFlagEmoji("KZ") },
+  { name: "쿠웨이트", nameEn: "Kuwait", code: "KW", continent: "아시아", lat: 29.3759, lng: 47.9774, flag: getFlagEmoji("KW") },
+  { name: "키르기스스탄", nameEn: "Kyrgyzstan", code: "KG", continent: "아시아", lat: 42.8746, lng: 74.5698, flag: getFlagEmoji("KG") },
+  { name: "라오스", nameEn: "Laos", code: "LA", continent: "아시아", lat: 17.9757, lng: 102.6331, flag: getFlagEmoji("LA") },
+  { name: "레바논", nameEn: "Lebanon", code: "LB", continent: "아시아", lat: 33.8938, lng: 35.5018, flag: getFlagEmoji("LB") },
+  { name: "말레이시아", nameEn: "Malaysia", code: "MY", continent: "아시아", lat: 3.1390, lng: 101.6869, flag: getFlagEmoji("MY") },
+  { name: "몰디브", nameEn: "Maldives", code: "MV", continent: "아시아", lat: 4.1755, lng: 73.5093, flag: getFlagEmoji("MV") },
+  { name: "몽골", nameEn: "Mongolia", code: "MN", continent: "아시아", lat: 47.8864, lng: 106.9057, flag: getFlagEmoji("MN") },
+  { name: "미얀마", nameEn: "Myanmar", code: "MM", continent: "아시아", lat: 16.8661, lng: 96.1951, flag: getFlagEmoji("MM") },
+  { name: "네팔", nameEn: "Nepal", code: "NP", continent: "아시아", lat: 27.7172, lng: 85.3240, flag: getFlagEmoji("NP") },
+  { name: "북한", nameEn: "North Korea", code: "KP", continent: "아시아", lat: 39.0392, lng: 125.7625, flag: getFlagEmoji("KP") },
+  { name: "오만", nameEn: "Oman", code: "OM", continent: "아시아", lat: 23.5859, lng: 58.4059, flag: getFlagEmoji("OM") },
+  { name: "파키스탄", nameEn: "Pakistan", code: "PK", continent: "아시아", lat: 33.6844, lng: 73.0479, flag: getFlagEmoji("PK") },
+  { name: "팔레스타인", nameEn: "Palestine", code: "PS", continent: "아시아", lat: 31.9522, lng: 35.2332, flag: getFlagEmoji("PS") },
+  { name: "필리핀", nameEn: "Philippines", code: "PH", continent: "아시아", lat: 14.5995, lng: 120.9842, flag: getFlagEmoji("PH") },
+  { name: "카타르", nameEn: "Qatar", code: "QA", continent: "아시아", lat: 25.2854, lng: 51.5310, flag: getFlagEmoji("QA") },
+  { name: "사우디아라비아", nameEn: "Saudi Arabia", code: "SA", continent: "아시아", lat: 24.7136, lng: 46.6753, flag: getFlagEmoji("SA") },
+  { name: "싱가포르", nameEn: "Singapore", code: "SG", continent: "아시아", lat: 1.3521, lng: 103.8198, flag: getFlagEmoji("SG") },
+  { name: "대한민국", nameEn: "South Korea", code: "KR", continent: "아시아", lat: 37.5665, lng: 126.9780, flag: getFlagEmoji("KR") },
+  { name: "스리랑카", nameEn: "Sri Lanka", code: "LK", continent: "아시아", lat: 6.9271, lng: 79.8612, flag: getFlagEmoji("LK") },
+  { name: "시리아", nameEn: "Syria", code: "SY", continent: "아시아", lat: 33.5138, lng: 36.2765, flag: getFlagEmoji("SY") },
+  { name: "타지키스탄", nameEn: "Tajikistan", code: "TJ", continent: "아시아", lat: 38.5598, lng: 68.7870, flag: getFlagEmoji("TJ") },
+  { name: "태국", nameEn: "Thailand", code: "TH", continent: "아시아", lat: 13.7563, lng: 100.5018, flag: getFlagEmoji("TH") },
+  { name: "동티모르", nameEn: "Timor-Leste", code: "TL", continent: "아시아", lat: -8.5569, lng: 125.5603, flag: getFlagEmoji("TL") },
+  { name: "터키", nameEn: "Turkey", code: "TR", continent: "아시아", lat: 39.9334, lng: 32.8597, flag: getFlagEmoji("TR") },
+  { name: "투르크메니스탄", nameEn: "Turkmenistan", code: "TM", continent: "아시아", lat: 37.9601, lng: 58.3261, flag: getFlagEmoji("TM") },
+  { name: "아랍에미리트", nameEn: "United Arab Emirates", code: "AE", continent: "아시아", lat: 24.4539, lng: 54.3773, flag: getFlagEmoji("AE") },
+  { name: "우즈베키스탄", nameEn: "Uzbekistan", code: "UZ", continent: "아시아", lat: 41.2995, lng: 69.2401, flag: getFlagEmoji("UZ") },
+  { name: "베트남", nameEn: "Vietnam", code: "VN", continent: "아시아", lat: 21.0285, lng: 105.8542, flag: getFlagEmoji("VN") },
+  { name: "예멘", nameEn: "Yemen", code: "YE", continent: "아시아", lat: 15.3694, lng: 44.1910, flag: getFlagEmoji("YE") },
+
+  // 🟩 아프리카 (54개국)
+  { name: "알제리", nameEn: "Algeria", code: "DZ", continent: "아프리카", lat: 36.7538, lng: 3.0588, flag: getFlagEmoji("DZ") },
+  { name: "앙골라", nameEn: "Angola", code: "AO", continent: "아프리카", lat: -8.8383, lng: 13.2344, flag: getFlagEmoji("AO") },
+  { name: "베냉", nameEn: "Benin", code: "BJ", continent: "아프리카", lat: 6.4969, lng: 2.6289, flag: getFlagEmoji("BJ") },
+  { name: "보츠와나", nameEn: "Botswana", code: "BW", continent: "아프리카", lat: -24.6282, lng: 25.9231, flag: getFlagEmoji("BW") },
+  { name: "부르키나파소", nameEn: "Burkina Faso", code: "BF", continent: "아프리카", lat: 12.3714, lng: -1.5197, flag: getFlagEmoji("BF") },
+  { name: "부룬디", nameEn: "Burundi", code: "BI", continent: "아프리카", lat: -3.3614, lng: 29.3599, flag: getFlagEmoji("BI") },
+  { name: "카보베르데", nameEn: "Cabo Verde", code: "CV", continent: "아프리카", lat: 14.9330, lng: -23.5133, flag: getFlagEmoji("CV") },
+  { name: "카메룬", nameEn: "Cameroon", code: "CM", continent: "아프리카", lat: 3.8480, lng: 11.5021, flag: getFlagEmoji("CM") },
+  { name: "중앙아프리카공화국", nameEn: "Central African Republic", code: "CF", continent: "아프리카", lat: 4.3947, lng: 18.5582, flag: getFlagEmoji("CF") },
+  { name: "차드", nameEn: "Chad", code: "TD", continent: "아프리카", lat: 12.1348, lng: 15.0557, flag: getFlagEmoji("TD") },
+  { name: "코모로", nameEn: "Comoros", code: "KM", continent: "아프리카", lat: -11.6455, lng: 43.3333, flag: getFlagEmoji("KM") },
+  { name: "콩고공화국", nameEn: "Republic of the Congo", code: "CG", continent: "아프리카", lat: -4.2634, lng: 15.2429, flag: getFlagEmoji("CG") },
+  { name: "콩고민주공화국", nameEn: "Democratic Republic of the Congo", code: "CD", continent: "아프리카", lat: -4.3276, lng: 15.3136, flag: getFlagEmoji("CD") },
+  { name: "지부티", nameEn: "Djibouti", code: "DJ", continent: "아프리카", lat: 11.8251, lng: 42.5903, flag: getFlagEmoji("DJ") },
+  { name: "이집트", nameEn: "Egypt", code: "EG", continent: "아프리카", lat: 30.0444, lng: 31.2357, flag: getFlagEmoji("EG") },
+  { name: "적도기니", nameEn: "Equatorial Guinea", code: "GQ", continent: "아프리카", lat: 3.7504, lng: 8.7371, flag: getFlagEmoji("GQ") },
+  { name: "에리트레아", nameEn: "Eritrea", code: "ER", continent: "아프리카", lat: 15.3229, lng: 38.9251, flag: getFlagEmoji("ER") },
+  { name: "에스와티니", nameEn: "Eswatini", code: "SZ", continent: "아프리카", lat: -26.3054, lng: 31.1367, flag: getFlagEmoji("SZ") },
+  { name: "에티오피아", nameEn: "Ethiopia", code: "ET", continent: "아프리카", lat: 9.1450, lng: 38.7667, flag: getFlagEmoji("ET") },
+  { name: "가봉", nameEn: "Gabon", code: "GA", continent: "아프리카", lat: 0.3476, lng: 9.4673, flag: getFlagEmoji("GA") },
+  { name: "감비아", nameEn: "Gambia", code: "GM", continent: "아프리카", lat: 13.4549, lng: -16.5790, flag: getFlagEmoji("GM") },
+  { name: "가나", nameEn: "Ghana", code: "GH", continent: "아프리카", lat: 5.6037, lng: -0.1870, flag: getFlagEmoji("GH") },
+  { name: "기니", nameEn: "Guinea", code: "GN", continent: "아프리카", lat: 9.6412, lng: -13.5784, flag: getFlagEmoji("GN") },
+  { name: "기니비사우", nameEn: "Guinea-Bissau", code: "GW", continent: "아프리카", lat: 11.8636, lng: -15.5846, flag: getFlagEmoji("GW") },
+  { name: "코트디부아르", nameEn: "Ivory Coast", code: "CI", continent: "아프리카", lat: 5.3600, lng: -4.0083, flag: getFlagEmoji("CI") },
+  { name: "케냐", nameEn: "Kenya", code: "KE", continent: "아프리카", lat: -1.2921, lng: 36.8219, flag: getFlagEmoji("KE") },
+  { name: "레소토", nameEn: "Lesotho", code: "LS", continent: "아프리카", lat: -29.3101, lng: 27.4786, flag: getFlagEmoji("LS") },
+  { name: "라이베리아", nameEn: "Liberia", code: "LR", continent: "아프리카", lat: 6.3153, lng: -10.8074, flag: getFlagEmoji("LR") },
+  { name: "리비아", nameEn: "Libya", code: "LY", continent: "아프리카", lat: 32.8872, lng: 13.1913, flag: getFlagEmoji("LY") },
+  { name: "마다가스카르", nameEn: "Madagascar", code: "MG", continent: "아프리카", lat: -18.8792, lng: 47.5079, flag: getFlagEmoji("MG") },
+  { name: "말라위", nameEn: "Malawi", code: "MW", continent: "아프리카", lat: -13.9626, lng: 33.7741, flag: getFlagEmoji("MW") },
+  { name: "말리", nameEn: "Mali", code: "ML", continent: "아프리카", lat: 12.6392, lng: -8.0029, flag: getFlagEmoji("ML") },
+  { name: "모리타니아", nameEn: "Mauritania", code: "MR", continent: "아프리카", lat: 18.0735, lng: -15.9582, flag: getFlagEmoji("MR") },
+  { name: "모리셔스", nameEn: "Mauritius", code: "MU", continent: "아프리카", lat: -20.1609, lng: 57.5012, flag: getFlagEmoji("MU") },
+  { name: "모로코", nameEn: "Morocco", code: "MA", continent: "아프리카", lat: 33.9716, lng: -6.8498, flag: getFlagEmoji("MA") },
+  { name: "모잠비크", nameEn: "Mozambique", code: "MZ", continent: "아프리카", lat: -25.9692, lng: 32.5732, flag: getFlagEmoji("MZ") },
+  { name: "나미비아", nameEn: "Namibia", code: "NA", continent: "아프리카", lat: -22.5609, lng: 17.0658, flag: getFlagEmoji("NA") },
+  { name: "니제르", nameEn: "Niger", code: "NE", continent: "아프리카", lat: 13.5137, lng: 2.1098, flag: getFlagEmoji("NE") },
+  { name: "나이지리아", nameEn: "Nigeria", code: "NG", continent: "아프리카", lat: 9.0765, lng: 7.3986, flag: getFlagEmoji("NG") },
+  { name: "르완다", nameEn: "Rwanda", code: "RW", continent: "아프리카", lat: -1.9441, lng: 30.0619, flag: getFlagEmoji("RW") },
+  { name: "상투메프린시페", nameEn: "São Tomé and Príncipe", code: "ST", continent: "아프리카", lat: 0.3302, lng: 6.7333, flag: getFlagEmoji("ST") },
+  { name: "세네갈", nameEn: "Senegal", code: "SN", continent: "아프리카", lat: 14.7167, lng: -17.4677, flag: getFlagEmoji("SN") },
+  { name: "세이셸", nameEn: "Seychelles", code: "SC", continent: "아프리카", lat: -4.6191, lng: 55.4513, flag: getFlagEmoji("SC") },
+  { name: "시에라리온", nameEn: "Sierra Leone", code: "SL", continent: "아프리카", lat: 8.4840, lng: -13.2299, flag: getFlagEmoji("SL") },
+  { name: "소말리아", nameEn: "Somalia", code: "SO", continent: "아프리카", lat: 2.0469, lng: 45.3182, flag: getFlagEmoji("SO") },
+  { name: "남아프리카공화국", nameEn: "South Africa", code: "ZA", continent: "아프리카", lat: -25.7479, lng: 28.2293, flag: getFlagEmoji("ZA") },
+  { name: "남수단", nameEn: "South Sudan", code: "SS", continent: "아프리카", lat: 4.8594, lng: 31.5713, flag: getFlagEmoji("SS") },
+  { name: "수단", nameEn: "Sudan", code: "SD", continent: "아프리카", lat: 15.5007, lng: 32.5599, flag: getFlagEmoji("SD") },
+  { name: "탄자니아", nameEn: "Tanzania", code: "TZ", continent: "아프리카", lat: -6.1630, lng: 35.7516, flag: getFlagEmoji("TZ") },
+  { name: "토고", nameEn: "Togo", code: "TG", continent: "아프리카", lat: 6.1375, lng: 1.2123, flag: getFlagEmoji("TG") },
+  { name: "튀니지", nameEn: "Tunisia", code: "TN", continent: "아프리카", lat: 36.8065, lng: 10.1815, flag: getFlagEmoji("TN") },
+  { name: "우간다", nameEn: "Uganda", code: "UG", continent: "아프리카", lat: 0.3476, lng: 32.5825, flag: getFlagEmoji("UG") },
+  { name: "잠비아", nameEn: "Zambia", code: "ZM", continent: "아프리카", lat: -15.3875, lng: 28.3228, flag: getFlagEmoji("ZM") },
+  { name: "짐바브웨", nameEn: "Zimbabwe", code: "ZW", continent: "아프리카", lat: -17.8292, lng: 31.0522, flag: getFlagEmoji("ZW") },
+
+  // 🟥 유럽 (44개국)
+  { name: "알바니아", nameEn: "Albania", code: "AL", continent: "유럽", lat: 41.3275, lng: 19.8187, flag: getFlagEmoji("AL") },
+  { name: "안도라", nameEn: "Andorra", code: "AD", continent: "유럽", lat: 42.5063, lng: 1.5218, flag: getFlagEmoji("AD") },
+  { name: "오스트리아", nameEn: "Austria", code: "AT", continent: "유럽", lat: 48.2082, lng: 16.3738, flag: getFlagEmoji("AT") },
+  { name: "벨라루스", nameEn: "Belarus", code: "BY", continent: "유럽", lat: 53.9045, lng: 27.5615, flag: getFlagEmoji("BY") },
+  { name: "벨기에", nameEn: "Belgium", code: "BE", continent: "유럽", lat: 50.8503, lng: 4.3517, flag: getFlagEmoji("BE") },
+  { name: "보스니아헤르체고비나", nameEn: "Bosnia and Herzegovina", code: "BA", continent: "유럽", lat: 43.8517, lng: 18.3867, flag: getFlagEmoji("BA") },
+  { name: "불가리아", nameEn: "Bulgaria", code: "BG", continent: "유럽", lat: 42.6977, lng: 23.3219, flag: getFlagEmoji("BG") },
+  { name: "크로아티아", nameEn: "Croatia", code: "HR", continent: "유럽", lat: 45.8150, lng: 15.9819, flag: getFlagEmoji("HR") },
+  { name: "체코", nameEn: "Czech Republic", code: "CZ", continent: "유럽", lat: 50.0755, lng: 14.4378, flag: getFlagEmoji("CZ") },
+  { name: "덴마크", nameEn: "Denmark", code: "DK", continent: "유럽", lat: 55.6761, lng: 12.5683, flag: getFlagEmoji("DK") },
+  { name: "에스토니아", nameEn: "Estonia", code: "EE", continent: "유럽", lat: 59.4370, lng: 24.7536, flag: getFlagEmoji("EE") },
+  { name: "핀란드", nameEn: "Finland", code: "FI", continent: "유럽", lat: 60.1699, lng: 24.9384, flag: getFlagEmoji("FI") },
+  { name: "프랑스", nameEn: "France", code: "FR", continent: "유럽", lat: 48.8566, lng: 2.3522, flag: getFlagEmoji("FR") },
+  { name: "독일", nameEn: "Germany", code: "DE", continent: "유럽", lat: 52.5200, lng: 13.4050, flag: getFlagEmoji("DE") },
+  { name: "그리스", nameEn: "Greece", code: "GR", continent: "유럽", lat: 37.9838, lng: 23.7275, flag: getFlagEmoji("GR") },
+  { name: "헝가리", nameEn: "Hungary", code: "HU", continent: "유럽", lat: 47.4979, lng: 19.0402, flag: getFlagEmoji("HU") },
+  { name: "아이슬란드", nameEn: "Iceland", code: "IS", continent: "유럽", lat: 64.1466, lng: -21.9426, flag: getFlagEmoji("IS") },
+  { name: "아일랜드", nameEn: "Ireland", code: "IE", continent: "유럽", lat: 53.3498, lng: -6.2603, flag: getFlagEmoji("IE") },
+  { name: "이탈리아", nameEn: "Italy", code: "IT", continent: "유럽", lat: 41.9028, lng: 12.4964, flag: getFlagEmoji("IT") },
+  { name: "코소보", nameEn: "Kosovo", code: "XK", continent: "유럽", lat: 42.6629, lng: 21.1655, flag: getFlagEmoji("XK") },
+  { name: "라트비아", nameEn: "Latvia", code: "LV", continent: "유럽", lat: 56.9496, lng: 24.1052, flag: getFlagEmoji("LV") },
+  { name: "리히텐슈타인", nameEn: "Liechtenstein", code: "LI", continent: "유럽", lat: 47.1410, lng: 9.5209, flag: getFlagEmoji("LI") },
+  { name: "리투아니아", nameEn: "Lithuania", code: "LT", continent: "유럽", lat: 54.6872, lng: 25.2797, flag: getFlagEmoji("LT") },
+  { name: "룩셈부르크", nameEn: "Luxembourg", code: "LU", continent: "유럽", lat: 49.6116, lng: 6.1319, flag: getFlagEmoji("LU") },
+  { name: "몰타", nameEn: "Malta", code: "MT", continent: "유럽", lat: 35.8989, lng: 14.5146, flag: getFlagEmoji("MT") },
+  { name: "몰도바", nameEn: "Moldova", code: "MD", continent: "유럽", lat: 47.0104, lng: 28.8638, flag: getFlagEmoji("MD") },
+  { name: "모나코", nameEn: "Monaco", code: "MC", continent: "유럽", lat: 43.7384, lng: 7.4246, flag: getFlagEmoji("MC") },
+  { name: "몬테네그로", nameEn: "Montenegro", code: "ME", continent: "유럽", lat: 42.4304, lng: 19.2594, flag: getFlagEmoji("ME") },
+  { name: "네덜란드", nameEn: "Netherlands", code: "NL", continent: "유럽", lat: 52.3676, lng: 4.9041, flag: getFlagEmoji("NL") },
+  { name: "북마케도니아", nameEn: "North Macedonia", code: "MK", continent: "유럽", lat: 41.9981, lng: 21.4254, flag: getFlagEmoji("MK") },
+  { name: "노르웨이", nameEn: "Norway", code: "NO", continent: "유럽", lat: 59.9139, lng: 10.7522, flag: getFlagEmoji("NO") },
+  { name: "폴란드", nameEn: "Poland", code: "PL", continent: "유럽", lat: 52.2297, lng: 21.0122, flag: getFlagEmoji("PL") },
+  { name: "포르투갈", nameEn: "Portugal", code: "PT", continent: "유럽", lat: 38.7223, lng: -9.1393, flag: getFlagEmoji("PT") },
+  { name: "루마니아", nameEn: "Romania", code: "RO", continent: "유럽", lat: 44.4268, lng: 26.1025, flag: getFlagEmoji("RO") },
+  { name: "러시아", nameEn: "Russia", code: "RU", continent: "유럽", lat: 55.7558, lng: 37.6173, flag: getFlagEmoji("RU") },
+  { name: "산마리노", nameEn: "San Marino", code: "SM", continent: "유럽", lat: 43.9424, lng: 12.4578, flag: getFlagEmoji("SM") },
+  { name: "세르비아", nameEn: "Serbia", code: "RS", continent: "유럽", lat: 44.7866, lng: 20.4489, flag: getFlagEmoji("RS") },
+  { name: "슬로바키아", nameEn: "Slovakia", code: "SK", continent: "유럽", lat: 48.1486, lng: 17.1077, flag: getFlagEmoji("SK") },
+  { name: "슬로베니아", nameEn: "Slovenia", code: "SI", continent: "유럽", lat: 46.0569, lng: 14.5058, flag: getFlagEmoji("SI") },
+  { name: "스페인", nameEn: "Spain", code: "ES", continent: "유럽", lat: 40.4168, lng: -3.7038, flag: getFlagEmoji("ES") },
+  { name: "스웨덴", nameEn: "Sweden", code: "SE", continent: "유럽", lat: 59.3293, lng: 18.0686, flag: getFlagEmoji("SE") },
+  { name: "스위스", nameEn: "Switzerland", code: "CH", continent: "유럽", lat: 46.9479, lng: 7.4474, flag: getFlagEmoji("CH") },
+  { name: "우크라이나", nameEn: "Ukraine", code: "UA", continent: "유럽", lat: 50.4501, lng: 30.5234, flag: getFlagEmoji("UA") },
+  { name: "영국", nameEn: "United Kingdom", code: "GB", continent: "유럽", lat: 51.5074, lng: -0.1278, flag: getFlagEmoji("GB") },
+  { name: "바티칸", nameEn: "Vatican City", code: "VA", continent: "유럽", lat: 41.9029, lng: 12.4534, flag: getFlagEmoji("VA") },
+
+  // 🟨 북아메리카 (23개국)
+  { name: "앤티가바부다", nameEn: "Antigua and Barbuda", code: "AG", continent: "북아메리카", lat: 17.1253, lng: -61.8448, flag: getFlagEmoji("AG") },
+  { name: "바하마", nameEn: "Bahamas", code: "BS", continent: "북아메리카", lat: 25.0343, lng: -77.3963, flag: getFlagEmoji("BS") },
+  { name: "바베이도스", nameEn: "Barbados", code: "BB", continent: "북아메리카", lat: 13.1939, lng: -59.5432, flag: getFlagEmoji("BB") },
+  { name: "벨리즈", nameEn: "Belize", code: "BZ", continent: "북아메리카", lat: 17.1899, lng: -88.4976, flag: getFlagEmoji("BZ") },
+  { name: "캐나다", nameEn: "Canada", code: "CA", continent: "북아메리카", lat: 45.5017, lng: -73.5673, flag: getFlagEmoji("CA") },
+  { name: "코스타리카", nameEn: "Costa Rica", code: "CR", continent: "북아메리카", lat: 9.9281, lng: -84.0907, flag: getFlagEmoji("CR") },
+  { name: "쿠바", nameEn: "Cuba", code: "CU", continent: "북아메리카", lat: 23.1136, lng: -82.3666, flag: getFlagEmoji("CU") },
+  { name: "도미니카", nameEn: "Dominica", code: "DM", continent: "북아메리카", lat: 15.3092, lng: -61.3794, flag: getFlagEmoji("DM") },
+  { name: "도미니카공화국", nameEn: "Dominican Republic", code: "DO", continent: "북아메리카", lat: 18.4861, lng: -69.9312, flag: getFlagEmoji("DO") },
+  { name: "엘살바도르", nameEn: "El Salvador", code: "SV", continent: "북아메리카", lat: 13.6929, lng: -89.2182, flag: getFlagEmoji("SV") },
+  { name: "그레나다", nameEn: "Grenada", code: "GD", continent: "북아메리카", lat: 12.1165, lng: -61.6790, flag: getFlagEmoji("GD") },
+  { name: "과테말라", nameEn: "Guatemala", code: "GT", continent: "북아메리카", lat: 14.6349, lng: -90.5069, flag: getFlagEmoji("GT") },
+  { name: "아이티", nameEn: "Haiti", code: "HT", continent: "북아메리카", lat: 18.5944, lng: -72.3074, flag: getFlagEmoji("HT") },
+  { name: "온두라스", nameEn: "Honduras", code: "HN", continent: "북아메리카", lat: 14.0723, lng: -87.1921, flag: getFlagEmoji("HN") },
+  { name: "자메이카", nameEn: "Jamaica", code: "JM", continent: "북아메리카", lat: 18.1096, lng: -77.2975, flag: getFlagEmoji("JM") },
+  { name: "멕시코", nameEn: "Mexico", code: "MX", continent: "북아메리카", lat: 19.4326, lng: -99.1332, flag: getFlagEmoji("MX") },
+  { name: "니카라과", nameEn: "Nicaragua", code: "NI", continent: "북아메리카", lat: 12.1364, lng: -86.2514, flag: getFlagEmoji("NI") },
+  { name: "파나마", nameEn: "Panama", code: "PA", continent: "북아메리카", lat: 8.9824, lng: -79.5199, flag: getFlagEmoji("PA") },
+  { name: "세인트키츠네비스", nameEn: "Saint Kitts and Nevis", code: "KN", continent: "북아메리카", lat: 17.3578, lng: -62.7830, flag: getFlagEmoji("KN") },
+  { name: "세인트루시아", nameEn: "Saint Lucia", code: "LC", continent: "북아메리카", lat: 14.0101, lng: -60.9878, flag: getFlagEmoji("LC") },
+  { name: "세인트빈센트그레나딘", nameEn: "Saint Vincent and the Grenadines", code: "VC", continent: "북아메리카", lat: 12.9843, lng: -61.2872, flag: getFlagEmoji("VC") },
+  { name: "트리니다드토바고", nameEn: "Trinidad and Tobago", code: "TT", continent: "북아메리카", lat: 10.6918, lng: -61.2225, flag: getFlagEmoji("TT") },
+  { name: "미국", nameEn: "United States", code: "US", continent: "북아메리카", lat: 38.9072, lng: -77.0369, flag: getFlagEmoji("US") },
+
+  // 🟧 남아메리카 (12개국)
+  { name: "아르헨티나", nameEn: "Argentina", code: "AR", continent: "남아메리카", lat: -34.6037, lng: -58.3816, flag: getFlagEmoji("AR") },
+  { name: "볼리비아", nameEn: "Bolivia", code: "BO", continent: "남아메리카", lat: -16.2902, lng: -63.5887, flag: getFlagEmoji("BO") },
+  { name: "브라질", nameEn: "Brazil", code: "BR", continent: "남아메리카", lat: -23.5505, lng: -46.6333, flag: getFlagEmoji("BR") },
+  { name: "칠레", nameEn: "Chile", code: "CL", continent: "남아메리카", lat: -33.4489, lng: -70.6693, flag: getFlagEmoji("CL") },
+  { name: "콜롬비아", nameEn: "Colombia", code: "CO", continent: "남아메리카", lat: 4.7110, lng: -74.0721, flag: getFlagEmoji("CO") },
+  { name: "에콰도르", nameEn: "Ecuador", code: "EC", continent: "남아메리카", lat: -0.1807, lng: -78.4678, flag: getFlagEmoji("EC") },
+  { name: "가이아나", nameEn: "Guyana", code: "GY", continent: "남아메리카", lat: 6.8013, lng: -58.1551, flag: getFlagEmoji("GY") },
+  { name: "파라과이", nameEn: "Paraguay", code: "PY", continent: "남아메리카", lat: -25.2637, lng: -57.5759, flag: getFlagEmoji("PY") },
+  { name: "페루", nameEn: "Peru", code: "PE", continent: "남아메리카", lat: -12.0464, lng: -77.0428, flag: getFlagEmoji("PE") },
+  { name: "수리남", nameEn: "Suriname", code: "SR", continent: "남아메리카", lat: 5.8520, lng: -55.2038, flag: getFlagEmoji("SR") },
+  { name: "우루과이", nameEn: "Uruguay", code: "UY", continent: "남아메리카", lat: -34.9011, lng: -56.1645, flag: getFlagEmoji("UY") },
+  { name: "베네수엘라", nameEn: "Venezuela", code: "VE", continent: "남아메리카", lat: 10.4806, lng: -66.9036, flag: getFlagEmoji("VE") },
+
+  // 🟪 오세아니아 (14개국)
+  { name: "호주", nameEn: "Australia", code: "AU", continent: "오세아니아", lat: -35.2809, lng: 149.1300, flag: getFlagEmoji("AU") },
+  { name: "피지", nameEn: "Fiji", code: "FJ", continent: "오세아니아", lat: -18.1248, lng: 178.4501, flag: getFlagEmoji("FJ") },
+  { name: "키리바시", nameEn: "Kiribati", code: "KI", continent: "오세아니아", lat: 1.4518, lng: 173.0342, flag: getFlagEmoji("KI") },
+  { name: "마셜제도", nameEn: "Marshall Islands", code: "MH", continent: "오세아니아", lat: 7.1164, lng: 171.1858, flag: getFlagEmoji("MH") },
+  { name: "미크로네시아", nameEn: "Micronesia", code: "FM", continent: "오세아니아", lat: 6.9147, lng: 158.1610, flag: getFlagEmoji("FM") },
+  { name: "나우루", nameEn: "Nauru", code: "NR", continent: "오세아니아", lat: -0.5228, lng: 166.9315, flag: getFlagEmoji("NR") },
+  { name: "뉴질랜드", nameEn: "New Zealand", code: "NZ", continent: "오세아니아", lat: -36.8485, lng: 174.7633, flag: getFlagEmoji("NZ") },
+  { name: "팔라우", nameEn: "Palau", code: "PW", continent: "오세아니아", lat: 7.5150, lng: 134.5825, flag: getFlagEmoji("PW") },
+  { name: "파푸아뉴기니", nameEn: "Papua New Guinea", code: "PG", continent: "오세아니아", lat: -9.4438, lng: 147.1803, flag: getFlagEmoji("PG") },
+  { name: "사모아", nameEn: "Samoa", code: "WS", continent: "오세아니아", lat: -13.7590, lng: -172.1046, flag: getFlagEmoji("WS") },
+  { name: "솔로몬제도", nameEn: "Solomon Islands", code: "SB", continent: "오세아니아", lat: -9.4281, lng: 159.9497, flag: getFlagEmoji("SB") },
+  { name: "통가", nameEn: "Tonga", code: "TO", continent: "오세아니아", lat: -21.1789, lng: -175.1982, flag: getFlagEmoji("TO") },
+  { name: "투발루", nameEn: "Tuvalu", code: "TV", continent: "오세아니아", lat: -7.1095, lng: 177.6493, flag: getFlagEmoji("TV") },
+  { name: "바누아투", nameEn: "Vanuatu", code: "VU", continent: "오세아니아", lat: -17.7333, lng: 168.3273, flag: getFlagEmoji("VU") },
 ];
 
-export const continents = ["아시아", "유럽", "북미", "남미", "오세아니아", "중동", "아프리카"];
+export const continents = ["아시아", "아프리카", "유럽", "북아메리카", "남아메리카", "오세아니아"];
 
 // 위도/경도를 3D 좌표로 변환
 export function latLngToVector3(lat: number, lng: number, radius: number = 2.5) {
@@ -75,6 +240,3 @@ export function latLngToVector3(lat: number, lng: number, radius: number = 2.5) 
     z: radius * Math.sin(phi) * Math.sin(theta),
   };
 }
-
-
-

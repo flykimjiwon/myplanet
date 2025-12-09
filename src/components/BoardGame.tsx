@@ -1,0 +1,601 @@
+"use client";
+
+import { useState } from 'react';
+import { Country } from '@/lib/countries';
+
+interface BoardGameProps {
+  visitedCountries: Map<string, number>;
+  countries: Country[];
+  onSelectCountry?: (country: Country) => void;
+}
+
+type TabType = 'memory' | 'info' | 'benefit';
+
+// 대륙을 4개 그룹으로 묶기 (각 변에 배치)
+const continentGroups = {
+  '아시아/오세아니아': ['아시아', '오세아니아'],  // 변 0 (상단)
+  '유럽': ['유럽'],                                 // 변 1 (우측)
+  '북미/남미': ['북아메리카', '남아메리카'],        // 변 2 (하단)
+  '아프리카': ['아프리카'],                         // 변 3 (좌측)
+};
+
+// 각 그룹별 색상
+const groupColors: Record<string, { bg: string; border: string; text: string }> = {
+  '아시아/오세아니아': { bg: '#F8D348', border: '#F2B705', text: '#163C69' },
+  '유럽': { bg: '#5AA8E5', border: '#1F6FB8', text: '#FFFFFF' },
+  '북미/남미': { bg: '#EA3E38', border: '#D72C2A', text: '#FFFFFF' },
+  '아프리카': { bg: '#9ED4F5', border: '#5AA8E5', text: '#163C69' },
+};
+
+export default function BoardGame({ visitedCountries, countries, onSelectCountry }: BoardGameProps) {
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('memory');
+  const [rotationX, setRotationX] = useState(15);
+  const [rotationY, setRotationY] = useState(-25);
+  const [rotationZ, setRotationZ] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const rotateBoard = (delta: number) => setRotationZ((prev) => prev + delta);
+  // 대륙별로 국가 그룹화
+  const groupedCountries: Record<string, Country[]> = {};
+  
+  Object.keys(continentGroups).forEach((groupName) => {
+    const continents = continentGroups[groupName as keyof typeof continentGroups];
+    groupedCountries[groupName] = countries.filter(c => 
+      continents.includes(c.continent)
+    );
+  });
+
+  // 4개 변에 국가 배치 (각 그룹의 모든 국가를 해당 변에 배치)
+  const sides: Country[][] = [];
+  
+  // 각 그룹의 순서대로 변에 배치
+  Object.keys(continentGroups).forEach((groupName) => {
+    const groupCountries = groupedCountries[groupName];
+    // 해당 그룹의 모든 국가를 해당 변에 배치
+    sides.push([...groupCountries]);
+  });
+
+  // 마우스 드래그 핸들러
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - lastMousePos.x;
+    const deltaY = e.clientY - lastMousePos.y;
+    
+    setRotationY(prev => prev + deltaX * 0.5);
+    setRotationX(prev => Math.max(-30, Math.min(60, prev - deltaY * 0.5)));
+    setLastMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // 터치 드래그 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setLastMousePos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    
+    const deltaX = e.touches[0].clientX - lastMousePos.x;
+    const deltaY = e.touches[0].clientY - lastMousePos.y;
+    
+    setRotationY(prev => prev + deltaX * 0.5);
+    setRotationX(prev => Math.max(-30, Math.min(60, prev - deltaY * 0.5)));
+    setLastMousePos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  return (
+    <div className="w-full h-full relative overflow-auto" style={{ backgroundColor: '#FCECA3' }}>
+      <div className="min-h-full flex items-center justify-center p-4 md:p-8 relative" style={{
+        perspective: '1000px',
+        perspectiveOrigin: 'center center'
+      }}>
+        {/* 회전 컨트롤 */}
+        <div className="absolute top-2 left-2 flex gap-2 z-50">
+          <button
+            onClick={() => rotateBoard(-90)}
+            className="px-3 py-2 rounded-lg border-2 text-xs md:text-sm font-bold active:scale-95 transition-all"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderColor: '#1F6FB8',
+              color: '#163C69',
+              boxShadow: '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8)'
+            }}
+          >
+            ↺ 90°
+          </button>
+          <button
+            onClick={() => rotateBoard(90)}
+            className="px-3 py-2 rounded-lg border-2 text-xs md:text-sm font-bold active:scale-95 transition-all"
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderColor: '#1F6FB8',
+              color: '#163C69',
+              boxShadow: '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8)'
+            }}
+          >
+            ↻ 90°
+          </button>
+        </div>
+        <div 
+          className="relative"
+          style={{ 
+            width: 'min(90vw, 800px)', 
+            height: 'min(90vw, 800px)',
+            transform: `rotateX(${rotationX}deg) rotateY(${rotationY}deg) rotateZ(${rotationZ}deg)`,
+            transformStyle: 'preserve-3d',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* 보드 배경 */}
+          <div className="absolute inset-0 rounded-2xl" style={{
+            backgroundColor: '#FFFFFF',
+            border: '4px solid #1F6FB8',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.2), inset 0 2px 4px rgba(0,0,0,0.1)',
+            transform: 'translateZ(0)'
+          }}></div>
+
+          {/* 중앙 영역 - 국가 상세 정보 */}
+          <div className="absolute inset-8 md:inset-12 rounded-xl overflow-hidden" style={{
+            backgroundColor: '#E3F2FD',
+            border: '3px solid #5AA8E5',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.15)',
+            transform: 'translateZ(20px)'
+          }}>
+            {selectedCountry && visitedCountries.has(selectedCountry.code) ? (
+              <div className="h-full flex flex-col">
+                {/* 헤더 */}
+                <div className="p-3 md:p-4 border-b-2 relative" style={{ borderColor: '#5AA8E5' }}>
+                  <button
+                    onClick={() => setSelectedCountry(null)}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs transition-all active:scale-90"
+                    style={{
+                      backgroundColor: '#EA3E38',
+                      border: '2px solid #D72C2A',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    ×
+                  </button>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-3xl md:text-4xl">{selectedCountry.flag}</span>
+                    <div className="flex-1">
+                      <h3 className="text-base md:text-lg font-bold" style={{ color: '#163C69' }}>
+                        {selectedCountry.name}
+                      </h3>
+                      <p className="text-xs md:text-sm font-medium" style={{ color: '#5AA8E5' }}>
+                        {selectedCountry.nameEn}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs font-semibold" style={{ color: '#163C69' }}>
+                    방문 횟수: {visitedCountries.get(selectedCountry.code)}회
+                  </div>
+                </div>
+
+                {/* 탭 */}
+                <div className="flex border-b-2" style={{ borderColor: '#5AA8E5' }}>
+                  {[
+                    { id: 'memory' as TabType, label: '📸 추억', icon: '📸' },
+                    { id: 'info' as TabType, label: 'ℹ️ 정보', icon: 'ℹ️' },
+                    { id: 'benefit' as TabType, label: '🎁 혜택', icon: '🎁' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className="flex-1 py-2 px-2 text-xs md:text-sm font-semibold transition-all border-r-2 last:border-r-0"
+                      style={{
+                        backgroundColor: activeTab === tab.id ? '#5AA8E5' : 'transparent',
+                        borderColor: '#5AA8E5',
+                        color: activeTab === tab.id ? '#FFFFFF' : '#163C69',
+                        boxShadow: activeTab === tab.id ? 'inset 0 -2px 0 #1F6FB8' : 'none'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 탭 콘텐츠 */}
+                <div className="flex-1 overflow-y-auto p-3 md:p-4">
+                  {activeTab === 'memory' && (
+                    <div className="space-y-3">
+                      <div className="text-center py-8 rounded-lg border-2 border-dashed" style={{ borderColor: '#5AA8E5' }}>
+                        <div className="text-4xl mb-2">📷</div>
+                        <p className="text-sm font-semibold mb-2" style={{ color: '#163C69' }}>
+                          추억을 남겨보세요!
+                        </p>
+                        <p className="text-xs" style={{ color: '#5AA8E5' }}>
+                          사진을 업로드하거나 여행 추억을 기록할 수 있습니다
+                        </p>
+                        <button className="mt-3 px-4 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95"
+                          style={{
+                            backgroundColor: '#5AA8E5',
+                            border: '2px solid #1F6FB8',
+                            color: '#FFFFFF',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                        >
+                          사진 추가하기
+                        </button>
+                      </div>
+                      {/* 추억 목록 (추후 구현) */}
+                    </div>
+                  )}
+
+                  {activeTab === 'info' && (
+                    <div className="space-y-3">
+                      <div className="rounded-lg p-3" style={{ backgroundColor: '#FFFFFF', border: '2px solid #5AA8E5' }}>
+                        <h4 className="text-sm font-bold mb-2" style={{ color: '#163C69' }}>📍 주요 여행지</h4>
+                        <ul className="space-y-1 text-xs" style={{ color: '#5AA8E5' }}>
+                          <li>• 수도 및 주요 도시</li>
+                          <li>• 유명 관광 명소</li>
+                          <li>• 문화 유산</li>
+                          <li>• 자연 경관</li>
+                        </ul>
+                      </div>
+                      <div className="rounded-lg p-3" style={{ backgroundColor: '#FFFFFF', border: '2px solid #5AA8E5' }}>
+                        <h4 className="text-sm font-bold mb-2" style={{ color: '#163C69' }}>ℹ️ 국가 정보</h4>
+                        <div className="text-xs space-y-1" style={{ color: '#5AA8E5' }}>
+                          <p><strong>대륙:</strong> {selectedCountry.continent}</p>
+                          <p><strong>위치:</strong> 위도 {selectedCountry.lat.toFixed(2)}°, 경도 {selectedCountry.lng.toFixed(2)}°</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'benefit' && (
+                    <div className="space-y-3">
+                      <div className="rounded-lg p-3" style={{ backgroundColor: '#F8D348', border: '2px solid #F2B705' }}>
+                        <h4 className="text-sm font-bold mb-2" style={{ color: '#163C69' }}>🌐 로밍 상품</h4>
+                        <p className="text-xs mb-2" style={{ color: '#163C69' }}>
+                          {selectedCountry.name} 여행에 최적화된 로밍 상품
+                        </p>
+                        <button className="w-full py-2 rounded-md text-xs font-semibold transition-all active:scale-95"
+                          style={{
+                            backgroundColor: '#FFFFFF',
+                            border: '2px solid #F2B705',
+                            color: '#163C69',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          상품 보기
+                        </button>
+                      </div>
+                      <div className="rounded-lg p-3" style={{ backgroundColor: '#EA3E38', border: '2px solid #D72C2A' }}>
+                        <h4 className="text-sm font-bold mb-2" style={{ color: '#FFFFFF' }}>💳 트래블 카드</h4>
+                        <p className="text-xs mb-2" style={{ color: '#FFFFFF' }}>
+                          해외 여행 시 환율 혜택과 안전한 결제
+                        </p>
+                        <button className="w-full py-2 rounded-md text-xs font-semibold transition-all active:scale-95"
+                          style={{
+                            backgroundColor: '#FFFFFF',
+                            border: '2px solid #D72C2A',
+                            color: '#163C69',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          카드 신청
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-4xl md:text-6xl mb-2">🌍</div>
+                  <div className="text-lg md:text-2xl font-bold mb-2" style={{ color: '#163C69' }}>My Planet</div>
+                  <div className="text-xs md:text-sm font-semibold mb-4" style={{ color: '#5AA8E5' }}>
+                    트래블마블 모드
+                  </div>
+                  <p className="text-xs px-4" style={{ color: '#5AA8E5' }}>
+                    방문한 국가를 클릭하면<br />
+                    상세 정보를 확인할 수 있습니다
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 4개 변에 국가 배치 */}
+          {sides.map((sideCountries, sideIndex) => {
+            const groupName = Object.keys(continentGroups)[sideIndex];
+            const colors = groupColors[groupName];
+            const cellsPerSide = sideCountries.length;
+            
+            return (
+              <div
+                key={sideIndex}
+                className="absolute"
+                style={{
+                  ...getSidePosition(sideIndex, 'min(90vw, 800px)'),
+                  transform: 'translateZ(10px)',
+                }}
+              >
+                {/* 변 라벨 */}
+                {(() => {
+                  const labelPos = getSideLabelPosition(sideIndex);
+                  return (
+                    <div
+                      className="absolute text-center font-bold text-base md:text-lg px-4 py-2.5 rounded-lg"
+                      style={{
+                        ...labelPos.position,
+                        backgroundColor: colors.bg,
+                        border: `4px solid ${colors.border}`,
+                        color: colors.text,
+                        boxShadow: '0 12px 24px rgba(0,0,0,0.5), inset 0 -2px 2px rgba(0,0,0,0.1)',
+                        zIndex: 300, // 더 위로 올라가게
+                        transform: labelPos.transform,
+                        textShadow: '0 4px 8px rgba(0,0,0,0.4)',
+                      }}
+                    >
+                      {groupName}
+                    </div>
+                  );
+                })()}
+
+                {/* 국가 칸들 */}
+                {sideCountries.map((country, cellIndex) => {
+                  const isVisited = visitedCountries.has(country.code);
+                  const isSelected = selectedCountry?.code === country.code;
+                  const visits = visitedCountries.get(country.code) || 0;
+                  
+                  return (
+                    <div
+                      key={country.code}
+                      className="absolute flex flex-col items-center justify-center rounded-md border-2 transition-all hover:scale-110"
+                      style={{
+                        ...getCellPosition(sideIndex, cellIndex, cellsPerSide, 'min(90vw, 800px)', isVisited, isSelected),
+                        backgroundColor: isVisited ? colors.bg : '#FFFFFF',
+                        borderColor: isSelected ? '#F8D348' : (isVisited ? colors.border : '#C8D3DF'),
+                        borderWidth: isSelected ? '3px' : '2px',
+                        boxShadow: isSelected
+                          ? '0 10px 16px rgba(0,0,0,0.45), 0 0 0 2px rgba(248, 211, 72, 0.6), inset 0 -2px 2px rgba(0,0,0,0.1)'
+                          : isVisited 
+                          ? '0 6px 12px rgba(0,0,0,0.35), inset 0 -2px 2px rgba(0,0,0,0.1)'
+                          : '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8)',
+                        width: isSelected ? 'clamp(68px, 6.8vw, 105px)' : (isVisited ? 'clamp(60px, 6vw, 92px)' : 'clamp(45px, 4.5vw, 70px)'),
+                        height: isSelected ? 'clamp(105px, 10.5vw, 150px)' : (isVisited ? 'clamp(88px, 8.8vw, 125px)' : 'clamp(60px, 6vw, 90px)'),
+                        cursor: isVisited ? 'pointer' : 'default',
+                        zIndex: isSelected ? 180 : (isVisited ? 120 : 1),
+                        transform: `${getCellPosition(sideIndex, cellIndex, cellsPerSide, 'min(90vw, 800px)', isVisited, isSelected).transform} ${isSelected ? 'scale(1.12)' : ''}`,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isVisited) {
+                          setSelectedCountry(country);
+                          setActiveTab('memory');
+                        }
+                      }}
+                      title={isVisited ? `${country.name} (${country.nameEn}) - 클릭하여 상세 정보 보기` : `${country.name} (${country.nameEn}) - 아직 방문하지 않음`}
+                    >
+                      {/* 떠 있는 국기 배지 (카드 상단) */}
+                      {isVisited && (
+                        <div
+                          className="absolute flex items-center justify-center rounded-full border-2"
+                          style={{
+                            ...getFlagBadgePosition(sideIndex),
+                            backgroundColor: '#FFFFFF',
+                            borderColor: isSelected ? '#F8D348' : '#C8D3DF',
+                            boxShadow: '0 8px 14px rgba(0,0,0,0.35)',
+                            padding: '8px',
+                            zIndex: 260,
+                          }}
+                        >
+                          <div 
+                            className={isSelected ? 'text-5xl md:text-6xl' : 'text-4xl md:text-5xl'}
+                            style={{ 
+                              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.45))',
+                              textShadow: '0 4px 8px rgba(0,0,0,0.45)',
+                            }}
+                          >
+                            {country.flag}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 국기 표시 - 카드 내부 보조 (방문한 나라만) */}
+                      {isVisited && (
+                        <div 
+                          className={`${isSelected ? 'text-xl md:text-2xl' : 'text-lg md:text-xl'}`}
+                          style={{ 
+                            filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))',
+                            opacity: 0.8,
+                            marginTop: '18px'
+                          }}
+                        >
+                          {country.flag}
+                        </div>
+                      )}
+
+                      {/* 방문 횟수 표시 */}
+                      {isVisited && visits > 1 && (
+                        <div className="text-[9px] md:text-[11px] font-bold px-1.5 py-0.5 rounded" style={{
+                          backgroundColor: '#EA3E38',
+                          color: '#FFFFFF',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        }}>
+                          {visits}회
+                        </div>
+                      )}
+                      
+                      {/* 선택된 카드 표시 */}
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{
+                          backgroundColor: '#F8D348',
+                          border: '2px solid #F2B705',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                        }}>
+                          <span className="text-[10px]">✓</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 각 변의 위치 계산
+function getSidePosition(sideIndex: number, boardSize: string): React.CSSProperties {
+  // CSS calc 값을 직접 사용 (parseFloat 대신)
+  const paddingPercent = '15%';
+  
+  switch (sideIndex) {
+    case 0: // 상단 (아시아/오세아니아)
+      return {
+        top: 0,
+        left: paddingPercent,
+        width: `calc(100% - ${paddingPercent} * 2)`,
+        height: paddingPercent,
+      };
+    case 1: // 우측 (유럽)
+      return {
+        top: paddingPercent,
+        right: 0,
+        width: paddingPercent,
+        height: `calc(100% - ${paddingPercent} * 2)`,
+      };
+    case 2: // 하단 (북미/남미)
+      return {
+        bottom: 0,
+        left: paddingPercent,
+        width: `calc(100% - ${paddingPercent} * 2)`,
+        height: paddingPercent,
+      };
+    case 3: // 좌측 (아프리카)
+      return {
+        top: paddingPercent,
+        left: 0,
+        width: paddingPercent,
+        height: `calc(100% - ${paddingPercent} * 2)`,
+      };
+    default:
+      return {};
+  }
+}
+
+// 변 라벨 위치
+function getSideLabelPosition(sideIndex: number): { position: React.CSSProperties; transform: string } {
+  const z = 320; // 더 위로 튀어나오게 (240 -> 320)
+  switch (sideIndex) {
+    case 0: // 상단 (아시아/오세아니아) - 위쪽으로 더 올려서 배치, 정상 방향
+      return { 
+        position: { top: '50%', left: '50%' }, 
+        transform: `translate(-50%, -120%) translateZ(${z}px)` 
+      };
+    case 1: // 우측 (유럽) - 오른쪽으로 더 밀어서 배치, 90도 회전
+      return { 
+        position: { top: '50%', right: '10px' }, 
+        transform: `translateY(-50%) translateX(35px) rotate(90deg) translateZ(${z}px)` 
+      };
+    case 2: // 하단 (북미/남미) - 아래쪽으로 더 내려서 배치, 180도 회전
+      return { 
+        position: { bottom: '50%', left: '50%' }, 
+        transform: `translate(-50%, 120%) rotate(180deg) translateZ(${z}px)` 
+      };
+    case 3: // 좌측 (아프리카) - 왼쪽으로 더 밀어서 배치, -90도 회전
+      return { 
+        position: { top: '50%', left: '10px' }, 
+        transform: `translateY(-50%) translateX(-35px) rotate(-90deg) translateZ(${z}px)` 
+      };
+    default:
+      return { position: {}, transform: '' };
+  }
+}
+
+// 국기 배지 위치 (각 변 방향에 따라 위/오른쪽/아래/왼쪽 배치)
+function getFlagBadgePosition(sideIndex: number): React.CSSProperties {
+  const offset = '16px';
+  const z = 240;
+  switch (sideIndex) {
+    case 0: // 상단
+      return { top: `-${offset}`, left: '50%', transform: `translate(-50%, -50%) translateZ(${z}px)` };
+    case 1: // 우측
+      return { right: `-${offset}`, top: '50%', transform: `translate(50%, -50%) translateZ(${z}px)` };
+    case 2: // 하단
+      return { bottom: `-${offset}`, left: '50%', transform: `translate(-50%, 50%) translateZ(${z}px)` };
+    case 3: // 좌측
+      return { left: `-${offset}`, top: '50%', transform: `translate(-50%, -50%) translateZ(${z}px)` };
+    default:
+      return {};
+  }
+}
+
+// 각 칸의 위치 계산
+function getCellPosition(
+  sideIndex: number,
+  cellIndex: number,
+  totalCells: number,
+  boardSize: string,
+  isVisited: boolean = false,
+  isSelected: boolean = false
+): React.CSSProperties {
+  // CSS calc를 사용하여 퍼센트 기반으로 계산
+  const cellWidth = 100 / totalCells;
+  const position = cellIndex * cellWidth + cellWidth / 2;
+  // 선택된 나라 > 방문한 나라 > 방문하지 않은 나라 순으로 높이 조정 (더 강하게 돌출)
+  const zOffset = isSelected ? 240 : (isVisited ? 180 : 60);
+  
+  switch (sideIndex) {
+    case 0: // 상단 (왼쪽에서 오른쪽으로)
+      return {
+        left: `${position}%`,
+        top: '50%',
+        transform: `translate(-50%, -50%) translateZ(${zOffset}px)`,
+      };
+    case 1: // 우측 (위에서 아래로)
+      return {
+        top: `${position}%`,
+        right: '50%',
+        transform: `translate(50%, -50%) translateZ(${zOffset}px)`,
+      };
+    case 2: // 하단 (오른쪽에서 왼쪽으로)
+      return {
+        right: `${position}%`,
+        bottom: '50%',
+        transform: `translate(50%, 50%) translateZ(${zOffset}px)`,
+      };
+    case 3: // 좌측 (아래에서 위로)
+      return {
+        bottom: `${position}%`,
+        left: '50%',
+        transform: `translate(-50%, 50%) translateZ(${zOffset}px)`,
+      };
+    default:
+      return {};
+  }
+}
+
