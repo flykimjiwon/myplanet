@@ -1,36 +1,205 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+나라별로 컨셉있게 만들면 좋을거같고 깃발과 인물들이 하나씩 서있는거지!
+동물의숲 캐릭터 느낌으로다가
 
-## Getting Started
+오— **마이플래닛(My Planet)** 아이디어는 _완전 히트 가능성 있음_.
+특히 너가 좋아하는 **3D · 시각화 · 게임화 · 랭킹 · SNS 공유성**을 그대로 다 녹일 수 있어.
 
-First, run the development server:
+이거는 솔직히 “부의탑”보다 훨씬 더 **대중적**이야.
+누구나 여행을 가니까,
+누구나 “내가 가본 나라”를 자랑하고 싶어하니까.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+그리고 구현 난이도도 훨씬 낮아.
+3일짜리 대회에도 적합하고,
+3개월 진짜 앱으로 발전시키기도 좋고.
+
+---
+
+# 🌍 **마이플래닛(My Planet) – 지구본 기반 방문 국가 시각화 앱**
+
+## 🎯 개념
+
+- 내가 가본 나라들을 선택하거나 자동 인식(OCR/영수증/항공권 업로드)
+- **지구본에 깃발 꽂히면서 국가가 컬러로 채워짐**
+- 부르마블 느낌의 타일/블록 표현도 가능
+- 국가마다 “경험 레벨”, “무드”, “사진”, “마일리지” 넣을 수 있음
+
+### 👉 여행 좋아하는 사람들 100% 초반부터 반응하는 앱
+
+### 👉 인스타 릴스/틱톡에서 자동 바이럴나는 포맷
+
+---
+
+# ⭐ 1. 핵심 기능
+
+## 1) **3D 지구본(Three.js or R3F)**
+
+- 지구본 모델 (drei → `<Sphere />` + texture)
+- 국가별 경계는 GeoJSON 사용
+- 마우스/터치로 회전 가능
+- 선택한 국가에 깃발 + 컬러 강조
+
+---
+
+## 2) **가본 국가 선택**
+
+### 방식 1) 수동 체크
+
+- 대륙별 목록
+- 국가 선택 → 즉시 지구본 업데이트
+
+### 방식 2) AI-OCR 자동 인식
+
+- 여권 스탬프 / 호텔 영수증 / 항공권 스캔
+- → “방문 국가 자동 추출”
+
+### 방식 3) 위치 히스토리 가져오기
+
+- iPhone/Android 위치 기록 불러오기 (선택 사항)
+
+---
+
+## 3) **랭킹 시스템**
+
+- “전세계 몇 개국 방문?”
+- “내 친구 중 몇 등?”
+- “20대 한국 평균보다 많은가?”
+- “아시아/유럽/북미 몇 % 달성?”
+- ‘마이 월드 Map Completion Rate’(세계 정복률)
+
+→ SNS 공유 필수 요소.
+
+---
+
+## 4) **부르마블 스타일 모드**
+
+각 나라를 **타일 형태**로 표현 가능:
+
+- 방문하면 블록 점령
+- 자주 가면 레벨업
+- 사진 붙이기
+- 여행 기록 카드 만들어짐
+- 국기 색 테마 적용 가능
+
+확장 버전에서는:
+
+- 여행 포인트/스탬프
+- 여행 스타일 분석(힐링형, 모험형 등)
+- 추천 여행지 AI 분석
+
+까지 가능함.
+
+---
+
+# ⚙️ 기술 난이도 분석
+
+## 개발 난이도: 부의탑 < 마이플래닛?
+
+→ **아님**.
+→ 마이플래닛이 훨씬 쉽다. (압도적으로)
+
+이유:
+
+| 기능             | 부의탑            | 마이플래닛 |
+| ---------------- | ----------------- | ---------- |
+| 자산 이벤트 분석 | 매우 복잡         | 없음       |
+| 3D 애니메이션    | 많음              | 거의 없음  |
+| AI 필요성        | 필수(JSON 스토리) | 선택적     |
+| R3F 난이도       | Medium~High       | Low        |
+| UX 설계 난이도   | 높음              | 낮음       |
+| 데이터 파싱      | 복잡              | 단순       |
+| 3일 안 MVP       | 어려움            | 완전 가능  |
+
+결론: **마이플래닛은 3일 MVP에도 최적**
+
+---
+
+# 🌍 R3F 기반 지구본 구현 (난이도 낮음)
+
+```tsx
+<Canvas>
+  <ambientLight intensity={0.5} />
+  <directionalLight position={[5, 5, 5]} />
+  <OrbitControls enableZoom={true} />
+  <EarthMesh /> // 텍스처 입힌 Sphere
+  <Flags /> // 깃발들(핀이든 스티커든)
+  <CountryMarkers /> // 방문 국가 표시
+</Canvas>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 각 국가의 위도/경도를 XYZ로 변환해서 3D 위치 지정
+- 깃발은 `<mesh>` + `<sprite>` 로 표현
+- 쉬운 데코: 빛나는 글로우, 색깔 변화, 높이 변화
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# 📣 SNS 공유 포맷도 강함
 
-## Learn More
+- _“지구본 돌려보세요”_
+- _“내 여행 지도 공개합니다”_
+- _“세계 37개국 달성!”_
+- 릴스에서 자동 재생 가능
+- 3D라서 시각적 임팩트가 엄청 강함
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# ⭐ 확장 방향 (이거 미래 확장 핵심)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 1) 여행 성향 테스트 + 여행 추천
 
-## Deploy on Vercel
+- AI가 “당신은 힐링형 여행자”
+- “비슷한 여행자들은 보통 ○○로 갑니다.”
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 2) 마일리지 통합(내 포인트 어디 많지?)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+→ 금융권에서도 좋아함
+
+## 3) 여행 자산 소비 분석
+
+→ 카드사와 연결 가능
+→ 금융 도메인까지 확장됨
+
+## 4) 연인/가족 “커플 월드맵”
+
+→ 커플/가족이 함께 방문한 나라 표시
+
+---
+
+# 📌 3일짜리 데모로 가능한가?
+
+### YES. MVP는 딱 3개만 만들면 돼:
+
+1. **3D 지구본 R3F**
+2. **국가 선택 체크박스**
+3. **선택 시 지구본에서 깃발 꽂림**
+
+하면 이미 "와" 나온다.
+
+확장 기능은 원하는 만큼 붙이면 됨.
+
+---
+
+# 💡 결론
+
+### 너의 세 가지 옵션을 비교하면:
+
+| 아이디어   | 대중성   | 개발 난이도 | 시각화 임팩트 | 금융권 심사 매력 | SNS 바이럴 |
+| ---------- | -------- | ----------- | ------------- | ---------------- | ---------- |
+| 부의탑     | 높음     | 중~높음     | 최고          | 매우 높음        | 중간       |
+| 마이플래닛 | **최고** | **낮음**    | 매우 높음     | 중간             | **최고**   |
+| 식품앱     | 중~높음  | 낮음        | 낮음          | 높음             | 중간       |
+
+➡️ **마이플래닛은 바이럴/대중성/제작속도면에서 1등**
+➡️ **부의탑은 금융권 심사 + 임팩트면에서 1등**
+
+---
+
+# 원하면 지금 바로 해줄 수 있음:
+
+- **마이플래닛 README.md 완성본**
+- **R3F 지구본 초기 코드 템플릿**
+- **국가 데이터(GeoJSON) 세팅 코드**
+- **깃발 꽂기 로직**
+- **3일 MVP 개발플랜**
+- **UI 와이어프레임**
+
+바로 만들어줄까?
