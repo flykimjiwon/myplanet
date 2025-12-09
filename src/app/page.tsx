@@ -29,6 +29,10 @@ export default function Home() {
   const [mode, setMode] = useState<ViewMode>('globe');
   const [mounted, setMounted] = useState(false);
   const [ratingModal, setRatingModal] = useState<{ open: boolean; countryCode: string | null }>({ open: false, countryCode: null });
+  const [statsCardCollapsed, setStatsCardCollapsed] = useState(false);
+  const [statsCardPosition, setStatsCardPosition] = useState({ x: 0, y: 0 });
+  const [isDraggingStats, setIsDraggingStats] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   // 클라이언트에서만 마운트되도록 처리 (hydration 오류 방지)
   useEffect(() => {
@@ -93,6 +97,68 @@ export default function Home() {
     setMode(newMode);
   };
 
+  // 통계 카드 드래그 핸들러
+  const handleStatsMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return; // 버튼 클릭 시 드래그 방지
+    setIsDraggingStats(true);
+    setDragStart({
+      x: e.clientX - statsCardPosition.x,
+      y: e.clientY - statsCardPosition.y,
+    });
+  };
+
+  const handleStatsMouseMove = (e: MouseEvent) => {
+    if (!isDraggingStats) return;
+    setStatsCardPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleStatsMouseUp = () => {
+    setIsDraggingStats(false);
+  };
+
+  // 터치 드래그 핸들러
+  const handleStatsTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    if (e.touches.length === 1) {
+      setIsDraggingStats(true);
+      setDragStart({
+        x: e.touches[0].clientX - statsCardPosition.x,
+        y: e.touches[0].clientY - statsCardPosition.y,
+      });
+    }
+  };
+
+  const handleStatsTouchMove = (e: TouchEvent) => {
+    if (!isDraggingStats || e.touches.length !== 1) return;
+    e.preventDefault();
+    setStatsCardPosition({
+      x: e.touches[0].clientX - dragStart.x,
+      y: e.touches[0].clientY - dragStart.y,
+    });
+  };
+
+  const handleStatsTouchEnd = () => {
+    setIsDraggingStats(false);
+  };
+
+  useEffect(() => {
+    if (isDraggingStats) {
+      window.addEventListener('mousemove', handleStatsMouseMove);
+      window.addEventListener('mouseup', handleStatsMouseUp);
+      window.addEventListener('touchmove', handleStatsTouchMove as EventListener, { passive: false });
+      window.addEventListener('touchend', handleStatsTouchEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleStatsMouseMove);
+        window.removeEventListener('mouseup', handleStatsMouseUp);
+        window.removeEventListener('touchmove', handleStatsTouchMove as EventListener);
+        window.removeEventListener('touchend', handleStatsTouchEnd);
+      };
+    }
+  }, [isDraggingStats, dragStart]);
+
   // 통계 계산
   const visitedCount = visitedCountries.size;
   const totalVisits = Array.from(visitedCountries.values()).reduce((sum, count) => sum + count, 0);
@@ -124,13 +190,14 @@ export default function Home() {
               onOpenRating={(code) => {
                 setRatingModal({ open: true, countryCode: code });
               }}
+              mode={mode}
             />
           </div>
 
         {/* 지구본/지도 뷰 */}
-        <div className="flex-1 h-[65%] lg:h-full relative flex flex-col">
+        <div className="flex-1 h-[72%] lg:h-full relative flex flex-col overflow-hidden">
           {/* 모드 토글 */}
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-10">
+          <div className="absolute top-2 md:top-6 left-1/2 transform -translate-x-1/2 z-10">
             <ModeToggle mode={mode} onToggle={(newMode) => toggleMode(newMode)} />
           </div>
 
@@ -182,20 +249,60 @@ export default function Home() {
             )}
 
             {/* 로고 & 통계 */}
-            <div className="absolute bottom-2 right-2 md:top-4 md:right-4 md:bottom-auto rounded-xl scale-[0.8] md:scale-100" style={{ 
-              backgroundColor: '#5AA8E5', 
-              border: '2px solid #1F6FB8', 
-              padding: 'clamp(0.5rem, 1.2vw, 0.875rem)',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)',
-              transformOrigin: 'bottom right',
-              minWidth: 'clamp(180px, 25vw, 220px)',
-              width: 'auto',
-              opacity: 0.9,
-            }}>
-              <h2 className="text-sm md:text-base font-bold mb-0.5" style={{ color: '#F8D348' }}>
-                My Planet
-              </h2>
-              <p className="text-[9px] md:text-[10px] mb-1.5 font-semibold opacity-90" style={{ color: '#FFFFFF' }}>나만의 여행 지도</p>
+            <div 
+              className="absolute rounded-xl scale-[0.8] md:scale-100 z-20 select-none"
+              style={{ 
+                backgroundColor: '#5AA8E5', 
+                border: '2px solid #1F6FB8', 
+                padding: 'clamp(0.5rem, 1.2vw, 0.875rem)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)',
+                minWidth: 'clamp(180px, 25vw, 220px)',
+                width: 'auto',
+                opacity: 0.8,
+                maxHeight: 'calc(100vh - 120px)',
+                overflowY: 'auto',
+                cursor: isDraggingStats ? 'grabbing' : 'grab',
+                ...(statsCardPosition.x !== 0 || statsCardPosition.y !== 0 ? {
+                  top: `${statsCardPosition.y}px`,
+                  left: `${statsCardPosition.x}px`,
+                  bottom: 'auto',
+                  right: 'auto',
+                } : {
+                  bottom: '8px',
+                  right: '8px',
+                  top: 'auto',
+                  left: 'auto',
+                }),
+              }}
+              onMouseDown={handleStatsMouseDown}
+              onTouchStart={handleStatsTouchStart}
+            >
+              {/* 헤더 (드래그 가능 영역) */}
+              <div className="flex items-center justify-between mb-1 cursor-grab active:cursor-grabbing">
+                <div className="flex-1">
+                  <h2 className="text-sm md:text-base font-bold mb-0.5" style={{ color: '#F8D348' }}>
+                    My Planet
+                  </h2>
+                  <p className="text-[9px] md:text-[10px] font-semibold opacity-90" style={{ color: '#FFFFFF' }}>나만의 여행 지도</p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStatsCardCollapsed(!statsCardCollapsed);
+                  }}
+                  className="ml-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all active:scale-90"
+                  style={{
+                    backgroundColor: '#1F6FB8',
+                    color: '#FFFFFF',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  {statsCardCollapsed ? '▼' : '▲'}
+                </button>
+              </div>
+              
+              {!statsCardCollapsed && (
+                <>
               
               {visitedCount === 0 ? (
                 <p className="text-[9px] md:text-[10px] leading-tight" style={{ color: '#FFFFFF' }}>
@@ -267,6 +374,8 @@ export default function Home() {
                     ) : null;
                   })()}
                 </div>
+              )}
+                </>
               )}
             </div>
           </div>

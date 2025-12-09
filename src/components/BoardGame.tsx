@@ -45,6 +45,7 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [selectedContinentGroup, setSelectedContinentGroup] = useState<string | null>(null);
   
   const rotateBoard = (delta: number) => setRotationZ((prev) => prev + delta);
 
@@ -189,35 +190,8 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
         perspective: '1000px',
         perspectiveOrigin: 'center center'
       }}>
-        {/* 회전 컨트롤 */}
-        <div className="absolute top-2 left-2 flex gap-2 z-50">
-          <button
-            onClick={() => rotateBoard(-90)}
-            className="px-3 py-2 rounded-lg border-2 text-xs md:text-sm font-bold active:scale-95 transition-all"
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderColor: '#1F6FB8',
-              color: '#163C69',
-              boxShadow: '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8)'
-            }}
-          >
-            ↺ 90°
-          </button>
-          <button
-            onClick={() => rotateBoard(90)}
-            className="px-3 py-2 rounded-lg border-2 text-xs md:text-sm font-bold active:scale-95 transition-all"
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderColor: '#1F6FB8',
-              color: '#163C69',
-              boxShadow: '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8)'
-            }}
-          >
-            ↻ 90°
-          </button>
-        </div>
         {/* 확대/축소 버튼 */}
-        <div className="absolute top-2 left-2 flex flex-col gap-2 z-50" style={{ top: '50px' }}>
+        <div className="absolute top-2 left-2 flex flex-col gap-2 z-50">
           <button
             onClick={handleZoomIn}
             className="w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95"
@@ -251,6 +225,45 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
             }}
           >
             <span className="text-xl font-bold" style={{ color: '#F8D348' }}>−</span>
+          </button>
+        </div>
+        {/* 회전 컨트롤 - 모바일에서 확대/축소 버튼 아래에 세로 배치 */}
+        <div className="absolute top-2 left-2 flex flex-col gap-2 z-50 md:flex-row md:gap-2" style={{ top: 'calc(50px + 2 * 42px)' }}>
+          <button
+            onClick={() => rotateBoard(-90)}
+            className="w-10 h-10 md:w-auto md:h-auto md:px-3 md:py-2 rounded-lg border-2 text-xs md:text-sm font-bold active:scale-95 transition-all flex items-center justify-center"
+            style={{
+              backgroundColor: '#5AA8E5',
+              border: '2px solid #1F6FB8',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#1F6FB8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#5AA8E5';
+            }}
+          >
+            <span className="text-2xl md:text-xl font-bold" style={{ color: '#F8D348' }}>↺</span>
+            <span className="hidden md:inline ml-1" style={{ color: '#F8D348' }}>90°</span>
+          </button>
+          <button
+            onClick={() => rotateBoard(90)}
+            className="w-10 h-10 md:w-auto md:h-auto md:px-3 md:py-2 rounded-lg border-2 text-xs md:text-sm font-bold active:scale-95 transition-all flex items-center justify-center"
+            style={{
+              backgroundColor: '#5AA8E5',
+              border: '2px solid #1F6FB8',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#1F6FB8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#5AA8E5';
+            }}
+          >
+            <span className="text-2xl md:text-xl font-bold" style={{ color: '#F8D348' }}>↻</span>
+            <span className="hidden md:inline ml-1" style={{ color: '#F8D348' }}>90°</span>
           </button>
         </div>
         <div 
@@ -478,12 +491,12 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
             ) : (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-4xl md:text-6xl mb-2">🌍</div>
-                  <div className="text-lg md:text-2xl font-bold mb-2" style={{ color: '#163C69' }}>My Planet</div>
-                  <div className="text-xs md:text-sm font-semibold mb-4" style={{ color: '#5AA8E5' }}>
+                  <div className="text-6xl md:text-9xl mb-2">🌍</div>
+                  <div className="text-xl md:text-3xl font-bold mb-2" style={{ color: '#163C69' }}>My Planet</div>
+                  <div className="text-sm md:text-base font-semibold mb-4" style={{ color: '#5AA8E5' }}>
                     트래블마블 모드
                   </div>
-                  <p className="text-xs px-4" style={{ color: '#5AA8E5' }}>
+                  <p className="text-sm md:text-base px-4" style={{ color: '#5AA8E5' }}>
                     방문한 국가를 클릭하면<br />
                     상세 정보를 확인할 수 있습니다
                   </p>
@@ -510,9 +523,13 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                 {/* 변 라벨 */}
                 {(() => {
                   const labelPos = getSideLabelPosition(sideIndex);
+                  // 해당 그룹의 방문한 국가 목록
+                  const visitedInGroup = sideCountries.filter(c => visitedCountries.has(c.code));
+                  const hasVisitedCountries = visitedInGroup.length > 0;
+                  
                   return (
                     <div
-                      className="absolute text-center font-bold text-base md:text-lg px-4 py-2.5 rounded-lg"
+                      className="absolute text-center font-bold text-base md:text-lg px-4 py-2.5 rounded-lg cursor-pointer transition-all active:scale-95"
                       style={{
                         ...labelPos.position,
                         backgroundColor: colors.bg,
@@ -522,9 +539,21 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                         zIndex: 300, // 더 위로 올라가게
                         transform: labelPos.transform,
                         textShadow: '0 4px 8px rgba(0,0,0,0.4)',
+                        opacity: hasVisitedCountries ? 1 : 0.6,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (hasVisitedCountries) {
+                          setSelectedContinentGroup(groupName);
+                        }
                       }}
                     >
                       {groupName}
+                      {hasVisitedCountries && (
+                        <span className="block text-xs mt-1 opacity-80">
+                          {visitedInGroup.length}개국
+                        </span>
+                      )}
                     </div>
                   );
                 })()}
@@ -651,6 +680,88 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
           })}
         </div>
       </div>
+
+      {/* 대륙별 방문한 국가 목록 모달 */}
+      {selectedContinentGroup && (() => {
+        const groupIndex = Object.keys(continentGroups).indexOf(selectedContinentGroup);
+        const groupCountries = sides[groupIndex] || [];
+        const visitedInGroup = groupCountries.filter(c => visitedCountries.has(c.code));
+        const colors = groupColors[selectedContinentGroup];
+        
+        return (
+          <div 
+            className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50"
+            onClick={() => setSelectedContinentGroup(null)}
+          >
+            <div 
+              className="w-[90%] max-w-md max-h-[80vh] rounded-xl overflow-hidden flex flex-col"
+              style={{ 
+                backgroundColor: '#FCECA3',
+                border: `3px solid ${colors.border}`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 헤더 */}
+              <div className="p-4 flex items-center justify-between" style={{ backgroundColor: colors.bg, borderBottom: `2px solid ${colors.border}` }}>
+                <h3 className="text-lg font-bold" style={{ color: colors.text }}>
+                  {selectedContinentGroup} 방문 국가
+                </h3>
+                <button
+                  onClick={() => setSelectedContinentGroup(null)}
+                  className="text-2xl font-bold hover:opacity-70 transition-opacity"
+                  style={{ color: colors.text }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* 국가 목록 */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {visitedInGroup.length === 0 ? (
+                  <p className="text-center text-sm" style={{ color: '#5AA8E5' }}>
+                    방문한 국가가 없습니다
+                  </p>
+                ) : (
+                  visitedInGroup.map((country) => {
+                    const visits = visitedCountries.get(country.code) || 0;
+                    return (
+                      <button
+                        key={country.code}
+                        onClick={() => {
+                          setSelectedCountry(country);
+                          setActiveTab('memory');
+                          setSelectedContinentGroup(null);
+                        }}
+                        className="w-full p-3 rounded-lg border-2 transition-all active:scale-95 text-left"
+                        style={{
+                          backgroundColor: colors.bg,
+                          borderColor: colors.border,
+                          color: colors.text,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{country.flag}</span>
+                            <div>
+                              <p className="font-semibold text-sm">{country.name}</p>
+                              <p className="text-xs opacity-80">{country.nameEn}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-semibold opacity-80">방문 횟수</p>
+                            <p className="text-sm font-bold">{visits}회</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

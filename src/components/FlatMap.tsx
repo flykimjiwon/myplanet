@@ -621,12 +621,6 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
       </svg>
 
 
-      {/* 타이틀 */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 backdrop-blur-sm px-4 py-2 md:px-6 md:py-3 rounded-full shadow-lg" style={{ backgroundColor: '#5AA8E5', border: '2px solid #1F6FB8' }}>
-        <p className="text-sm md:text-lg font-bold" style={{ color: '#F8D348' }}>
-          🗺️ 평평한 지구 모드
-        </p>
-      </div>
     </div>
   );
 }

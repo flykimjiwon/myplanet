@@ -12,6 +12,7 @@ interface CountrySelectorProps {
   onDecreaseVisits: (code: string) => void;
   onResetAll: () => void;
   onOpenRating?: (code: string) => void; // 평점 추가 버튼 클릭 시
+  mode?: 'globe' | 'flat' | 'board'; // 현재 모드
 }
 
 // 대륙별 아이콘 및 색상
@@ -33,6 +34,7 @@ export default function CountrySelector({
   onDecreaseVisits,
   onResetAll,
   onOpenRating,
+  mode = 'globe',
 }: CountrySelectorProps) {
   const [selectedContinent, setSelectedContinent] = useState<string>("전체");
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,7 +63,12 @@ export default function CountrySelector({
           🌍 My Planet
         </h1>
         <p className="text-[10px] lg:text-xs font-medium opacity-90" style={{ color: '#FFFFFF' }}>
-          지구본을 돌려보세요! 당신의 여행 기록을 확인하세요
+          {mode === 'globe' 
+            ? '지구본을 돌려보세요! 당신의 여행 기록을 확인하세요'
+            : mode === 'flat'
+            ? '평평한 지도에서 당신의 여행 발자국을 찾아보세요!'
+            : '트래블마블 보드에서 방문한 국가를 클릭해보세요!'
+          }
         </p>
       </div>
 
