@@ -73,8 +73,8 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
             preserveAspectRatio="xMidYMid meet"
             opacity="0.9"
           />
-        ) : (
-          /* 대체: 정밀한 SVG 경로로 그린 지도 */
+        ) : !useImageMap ? (
+          /* 대체: 정밀한 SVG 경로로 그린 지도 (이미지 로드 실패 시에만 표시) */
           <g filter="url(#landShadow)">
             {/* 더 정밀한 대륙 좌표 사용 */}
             {/* 북미 - 알래스카 (더 정밀) */}
@@ -538,7 +538,7 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
               opacity="0.7"
             />
           </g>
-        )}
+        ) : null}
 
 
         {/* 방문한 국가 마커 */}
