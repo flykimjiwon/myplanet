@@ -118,7 +118,7 @@ export async function getLatestExchangeRates(): Promise<Record<string, ExchangeR
   const latestRates: Record<string, ExchangeRate> = {};
   const seenCurrencies = new Set<string>();
 
-  for (const rate of data || []) {
+  for (const rate of (data || []) as any[]) {
     if (!seenCurrencies.has(rate.target_currency)) {
       latestRates[rate.target_currency] = rate;
       seenCurrencies.add(rate.target_currency);

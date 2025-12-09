@@ -37,8 +37,8 @@ export async function getUsers(): Promise<AdminUser[]> {
       id: user.id,
       email: user.email || '',
       created_at: user.created_at,
-      email_confirmed_at: user.email_confirmed_at,
-      last_sign_in_at: user.last_sign_in_at,
+      email_confirmed_at: user.email_confirmed_at ?? null,
+      last_sign_in_at: user.last_sign_in_at ?? null,
       phone: user.phone || null,
     }))
   } catch (err) {

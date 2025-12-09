@@ -5,6 +5,7 @@ Vercel에 배포할 때는 `.env.local` 파일이 자동으로 적용되지 않�
 ## 설정 방법
 
 1. **Vercel 대시보드 접속**
+
    - https://vercel.com/dashboard
    - 프로젝트 선택
 
@@ -40,7 +41,7 @@ OPENAI_API_KEY=your_openai_api_key
 4. 각 환경 변수를 추가:
    - **Key**: 환경 변수 이름 (예: `NEXT_PUBLIC_SUPABASE_URL`)
    - **Value**: 환경 변수 값
-   - **Environment**: 
+   - **Environment**:
      - `Production` (프로덕션 배포용)
      - `Preview` (프리뷰 배포용, 선택사항)
      - `Development` (개발용, 선택사항)
@@ -49,6 +50,7 @@ OPENAI_API_KEY=your_openai_api_key
 ## 중요 사항
 
 ⚠️ **보안 주의사항:**
+
 - `SUPABASE_SERVICE_ROLE_KEY`와 `OPENAI_API_KEY`는 **절대 공개하지 마세요**
 - Vercel의 환경 변수는 암호화되어 저장되지만, 코드에 직접 하드코딩하지 마세요
 - `.env.local` 파일은 `.gitignore`에 포함되어 있어 Git에 커밋되지 않습니다
@@ -56,6 +58,7 @@ OPENAI_API_KEY=your_openai_api_key
 ## 배포 후 확인
 
 배포가 완료되면:
+
 1. Vercel 대시보드에서 배포 로그 확인
 2. 환경 변수가 제대로 로드되었는지 확인
 3. 애플리케이션 테스트:
@@ -66,6 +69,7 @@ OPENAI_API_KEY=your_openai_api_key
 ## 문제 해결
 
 환경 변수가 제대로 작동하지 않는 경우:
+
 1. 환경 변수 이름이 정확한지 확인 (대소문자 구분)
 2. `NEXT_PUBLIC_` 접두사가 필요한 변수는 있는지 확인
 3. Vercel에서 환경 변수를 추가한 후 **재배포** 필요
@@ -75,4 +79,3 @@ OPENAI_API_KEY=your_openai_api_key
 
 - Vercel 환경 변수 문서: https://vercel.com/docs/concepts/projects/environment-variables
 - Next.js 환경 변수 문서: https://nextjs.org/docs/basic-features/environment-variables
-

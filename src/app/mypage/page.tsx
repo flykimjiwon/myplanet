@@ -142,7 +142,7 @@ export default function MyPage() {
           .from('user_preferences')
           .select('travel_preferences')
           .eq('user_id', authUser.id)
-          .single();
+          .single<{ travel_preferences: Record<string, string> | null }>();
 
         if (data?.travel_preferences) {
           setTravelPreferences(data.travel_preferences);
@@ -186,6 +186,7 @@ export default function MyPage() {
     const supabase = createClient();
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (authUser) {
+      // @ts-ignore - Supabase 타입 추론 문제 (travel_preferences 컬럼 타입 인식 불가)
       const { error } = await supabase
         .from('user_preferences')
         .upsert({

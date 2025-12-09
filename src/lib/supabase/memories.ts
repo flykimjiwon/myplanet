@@ -49,8 +49,8 @@ export async function saveTravelMemory(
     return false
   }
 
-  const { error } = await supabase
-    .from('travel_memories')
+  const { error } = await (supabase
+    .from('travel_memories') as any)
     .upsert({
       user_id: user.id,
       country_code: countryCode,

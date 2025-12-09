@@ -105,6 +105,7 @@ export interface Database {
           user_id: string
           stats_card_position: Json | null
           stats_card_collapsed: boolean
+          travel_preferences: Json | null
           created_at: string
           updated_at: string
         }
@@ -113,6 +114,7 @@ export interface Database {
           user_id: string
           stats_card_position?: Json | null
           stats_card_collapsed?: boolean
+          travel_preferences?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -121,6 +123,7 @@ export interface Database {
           user_id?: string
           stats_card_position?: Json | null
           stats_card_collapsed?: boolean
+          travel_preferences?: Json | null
           created_at?: string
           updated_at?: string
         }
