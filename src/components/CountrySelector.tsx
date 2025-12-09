@@ -50,34 +50,34 @@ export default function CountrySelector({
   const percentage = Math.round((visitedCount / totalCount) * 100);
 
   return (
-    <div className="flex flex-col h-full p-4 lg:p-6 rounded-2xl shadow-lg" style={{ 
+    <div className="flex flex-col h-full p-4 lg:p-6 rounded-t-none lg:rounded-2xl rounded-b-2xl shadow-lg" style={{ 
       backgroundColor: '#5AA8E5', 
       border: '2px solid #1F6FB8',
       transition: 'height 0.3s ease-in-out',
     }}>
       {/* 헤더 */}
-      <div className="mb-4">
-        <h1 className="text-2xl lg:text-3xl font-bold mb-1.5" style={{ color: '#F8D348', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+      <div className="mb-2 lg:mb-4 flex-shrink-0">
+        <h1 className="text-xl lg:text-3xl font-bold mb-0.5 lg:mb-1.5" style={{ color: '#F8D348', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
           🌍 My Planet
         </h1>
-        <p className="text-xs font-medium opacity-90" style={{ color: '#FFFFFF' }}>
+        <p className="text-[10px] lg:text-xs font-medium opacity-90" style={{ color: '#FFFFFF' }}>
           지구본을 돌려보세요! 당신의 여행 기록을 확인하세요
         </p>
       </div>
 
       {/* 통계 */}
-      <div className="mb-4 p-3 rounded-xl" style={{ 
+      <div className="mb-2 lg:mb-4 p-2 lg:p-3 rounded-xl flex-shrink-0" style={{
         backgroundColor: '#1F6FB8', 
         border: '2px solid #163C69',
         boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.15)'
       }}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold" style={{ color: '#FFFFFF' }}>방문한 국가</span>
-          <span className="text-lg lg:text-xl font-bold" style={{ color: '#F8D348' }}>
+        <div className="flex items-center justify-between mb-1 lg:mb-2">
+          <span className="text-[10px] lg:text-xs font-semibold" style={{ color: '#FFFFFF' }}>방문한 국가</span>
+          <span className="text-base lg:text-xl font-bold" style={{ color: '#F8D348' }}>
             {visitedCount} / {totalCount}
           </span>
         </div>
-        <div className="w-full rounded-full h-2.5 mb-1.5" style={{ 
+        <div className="w-full rounded-full h-2 lg:h-2.5 mb-1 lg:mb-1.5" style={{
           backgroundColor: '#163C69',
           boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
         }}>
@@ -91,7 +91,7 @@ export default function CountrySelector({
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-right font-semibold" style={{ color: '#F8D348' }}>
+          <p className="text-[10px] lg:text-xs text-right font-semibold" style={{ color: '#F8D348' }}>
             세계 정복률 {percentage}%
           </p>
           {visitedCount > 0 && (
@@ -120,15 +120,15 @@ export default function CountrySelector({
       </div>
 
       {/* 검색 */}
-      <div className="mb-3">
+      <div className="mb-2 lg:mb-3 flex-shrink-0">
         <div className="relative">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl" style={{ color: '#F8D348' }}>🔍</span>
-          <input
-            type="text"
+          <span className="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 text-lg lg:text-xl" style={{ color: '#F8D348' }}>🔍</span>
+        <input
+          type="text"
             placeholder="국가 이름을 입력하세요..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-4 pr-12 py-4 rounded-lg focus:outline-none text-base font-medium transition-all"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-3 lg:pl-4 pr-10 lg:pr-12 py-2.5 lg:py-4 rounded-lg focus:outline-none text-sm lg:text-base font-medium transition-all"
             style={{ 
               backgroundColor: '#E3F2FD', 
               border: '2px solid #1F6FB8',
@@ -150,7 +150,7 @@ export default function CountrySelector({
       </div>
 
       {/* 대륙 필터 */}
-      <div className="mb-3">
+      <div className="mb-2 lg:mb-3 flex-shrink-0">
         <div className="grid grid-cols-7 gap-1 lg:grid-cols-4 lg:gap-1.5">
           {["전체", ...continents].map((continent) => {
             const style = continentStyles[continent] || continentStyles["전체"];
@@ -160,9 +160,9 @@ export default function CountrySelector({
               : countries.filter(c => c.continent === continent).length;
             
             return (
-              <button
-                key={continent}
-                onClick={() => setSelectedContinent(continent)}
+          <button
+            key={continent}
+            onClick={() => setSelectedContinent(continent)}
                 className="flex flex-col items-center p-1 lg:p-1.5 rounded-lg transition-all duration-200 border-2 active:scale-95"
                 style={isSelected ? {
                   backgroundColor: '#F8D348',
@@ -197,14 +197,19 @@ export default function CountrySelector({
                 <span className="text-[9px] lg:text-[10px] opacity-80 font-semibold">
                   {countryCount}
                 </span>
-              </button>
+          </button>
             );
           })}
         </div>
       </div>
 
       {/* 국가 목록 */}
-      <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+      <div 
+        className="flex-1 overflow-y-auto space-y-1 lg:space-y-1.5 pr-1 custom-scrollbar"
+        style={{
+          minHeight: 'clamp(200px, 35vh, 285px)', // 최소 2개 국가 카드가 완전히 보이도록 설정 (모바일 최적화)
+        }}
+      >
         {filteredCountries.length === 0 ? (
           <div className="text-center py-8" style={{ color: '#F8D348' }}>
             <p className="text-4xl mb-2">🔍</p>
@@ -212,8 +217,8 @@ export default function CountrySelector({
           </div>
         ) : (
           filteredCountries.map((country) => {
-            const visits = visitedCountries.get(country.code) || 0;
-            const isVisited = visits > 0;
+          const visits = visitedCountries.get(country.code) || 0;
+          const isVisited = visits > 0;
             const rating = isVisited ? getCountryRating(country.code) : null;
             const getRatingEmoji = (rating: number | null) => {
               if (!rating) return null;
@@ -225,10 +230,10 @@ export default function CountrySelector({
               return null;
             };
             const ratingEmoji = getRatingEmoji(rating?.rating || null);
-            return (
-              <div
-                key={country.code}
-                className="w-full p-2.5 rounded-lg transition-all duration-200 border-2"
+          return (
+            <div
+              key={country.code}
+                className="w-full p-2 lg:p-2.5 rounded-lg transition-all duration-200 border-2"
                 style={isVisited ? {
                   backgroundColor: '#EA3E38',
                   borderColor: '#D72C2A',
@@ -254,19 +259,19 @@ export default function CountrySelector({
                     e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)';
                   }
                 }}
-              >
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={() => onToggleCountry(country.code)}
-                    className="flex items-center gap-2.5 flex-1 min-w-0"
+            >
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => onToggleCountry(country.code)}
+                    className="flex items-center gap-2 lg:gap-2.5 flex-1 min-w-0"
                   >
-                    <span className="text-xl flex-shrink-0">{country.flag}</span>
+                    <span className="text-lg lg:text-xl flex-shrink-0">{country.flag}</span>
                     <div className="text-left min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-semibold text-sm truncate" style={{ color: isVisited ? '#FFFFFF' : '#163C69' }}>{country.name}</p>
+                      <div className="flex items-center gap-1 lg:gap-1.5">
+                        <p className="font-semibold text-xs lg:text-sm truncate" style={{ color: isVisited ? '#FFFFFF' : '#163C69' }}>{country.name}</p>
                         {ratingEmoji && (
                           <span 
-                            className="text-base cursor-pointer flex-shrink-0"
+                            className="text-sm lg:text-base cursor-pointer flex-shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               if (onOpenRating) {
@@ -279,18 +284,18 @@ export default function CountrySelector({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs truncate opacity-80" style={{ color: isVisited ? '#F8D348' : '#5AA8E5' }}>{country.nameEn} · {country.continent}</p>
-                    </div>
-                  </button>
-                  
-                  {isVisited && (
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDecreaseVisits(country.code);
-                        }}
-                        className="w-7 h-7 rounded-md flex items-center justify-center font-bold transition-all text-sm border-2 active:scale-90"
+                      <p className="text-[10px] lg:text-xs truncate opacity-80" style={{ color: isVisited ? '#F8D348' : '#5AA8E5' }}>{country.nameEn} · {country.continent}</p>
+                  </div>
+                </button>
+                
+                {isVisited && (
+                    <div className="flex items-center gap-1 lg:gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDecreaseVisits(country.code);
+                      }}
+                        className="w-6 h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center font-bold transition-all text-xs lg:text-sm border-2 active:scale-90"
                         style={{ 
                           backgroundColor: '#D72C2A',
                           borderColor: '#A8201A',
@@ -305,18 +310,18 @@ export default function CountrySelector({
                           e.currentTarget.style.backgroundColor = '#D72C2A';
                           e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.2)';
                         }}
-                      >
-                        −
-                      </button>
-                      <div className="min-w-[40px] text-center">
-                        <p className="font-bold text-sm" style={{ color: '#F8D348' }}>{visits}회</p>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onIncreaseVisits(country.code);
-                        }}
-                        className="w-7 h-7 rounded-md flex items-center justify-center font-bold transition-all text-sm border-2 active:scale-90"
+                    >
+                      −
+                    </button>
+                      <div className="min-w-[35px] lg:min-w-[40px] text-center">
+                        <p className="font-bold text-xs lg:text-sm" style={{ color: '#F8D348' }}>{visits}회</p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onIncreaseVisits(country.code);
+                      }}
+                        className="w-6 h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center font-bold transition-all text-xs lg:text-sm border-2 active:scale-90"
                         style={{ 
                           backgroundColor: '#F8D348',
                           borderColor: '#F2B705',
@@ -331,9 +336,9 @@ export default function CountrySelector({
                           e.currentTarget.style.backgroundColor = '#F8D348';
                           e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2), inset 0 -2px 2px rgba(0,0,0,0.1)';
                         }}
-                      >
-                        +
-                      </button>
+                    >
+                      +
+                    </button>
                       {onOpenRating && (
                         <button
                           onClick={(e) => {
@@ -357,11 +362,11 @@ export default function CountrySelector({
                           ⭐ {ratingEmoji ? '수정' : '평점'}
                         </button>
                       )}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            );
+            </div>
+          );
           })
         )}
       </div>

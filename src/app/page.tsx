@@ -38,6 +38,7 @@ export default function Home() {
     if (saved.size > 0) {
       setVisitedCountries(saved);
     }
+
   }, []);
 
   // 방문한 나라 상태가 변경될 때마다 로컬스토리지에 저장
@@ -113,18 +114,18 @@ export default function Home() {
       <div className="h-full w-full flex flex-col lg:flex-row">
         {/* 국가 선택 사이드바 */}
         <div className="w-full lg:w-96 h-[35%] lg:h-full overflow-hidden">
-          <CountrySelector
-            countries={countries}
-            visitedCountries={visitedCountries}
-            onToggleCountry={handleToggleCountry}
-            onIncreaseVisits={handleIncreaseVisits}
-            onDecreaseVisits={handleDecreaseVisits}
-            onResetAll={handleResetAll}
-            onOpenRating={(code) => {
-              setRatingModal({ open: true, countryCode: code });
-            }}
-          />
-        </div>
+            <CountrySelector
+              countries={countries}
+              visitedCountries={visitedCountries}
+              onToggleCountry={handleToggleCountry}
+              onIncreaseVisits={handleIncreaseVisits}
+              onDecreaseVisits={handleDecreaseVisits}
+              onResetAll={handleResetAll}
+              onOpenRating={(code) => {
+                setRatingModal({ open: true, countryCode: code });
+              }}
+            />
+          </div>
 
         {/* 지구본/지도 뷰 */}
         <div className="flex-1 h-[65%] lg:h-full relative flex flex-col">
