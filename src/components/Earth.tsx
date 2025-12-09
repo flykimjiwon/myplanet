@@ -48,22 +48,22 @@ function useEarthTexture() {
       canvas.height = 2048;
       const ctx = canvas.getContext('2d')!;
       
-      // 만화스러운 밝은 바다 배경
+      // 연한 바다 배경
       const oceanGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      oceanGradient.addColorStop(0, '#3b82f6');  // 밝은 파랑
-      oceanGradient.addColorStop(0.3, '#60a5fa'); // 더 밝은 파랑
-      oceanGradient.addColorStop(0.5, '#3b82f6'); // 중간 파랑
-      oceanGradient.addColorStop(0.7, '#2563eb'); // 진한 파랑
-      oceanGradient.addColorStop(1, '#1e40af');   // 어두운 파랑
+      oceanGradient.addColorStop(0, '#93c5fd');  // 매우 연한 파랑
+      oceanGradient.addColorStop(0.3, '#bfdbfe'); // 더 연한 파랑
+      oceanGradient.addColorStop(0.5, '#93c5fd'); // 연한 파랑
+      oceanGradient.addColorStop(0.7, '#60a5fa'); // 중간 파랑
+      oceanGradient.addColorStop(1, '#3b82f6');   // 약간 진한 파랑
       ctx.fillStyle = oceanGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // 만화스러운 밝은 대륙 색상
+      // 진한 대륙 색상
       const landColors = {
-        forest: '#16a34a',      // 밝은 숲색
-        grass: '#4ade80',        // 밝은 초원색
-        desert: '#f59e0b',       // 밝은 사막색
-        mountain: '#94a3b8',    // 밝은 산색
+        forest: '#15803d',      // 진한 숲색
+        grass: '#22c55e',        // 진한 초원색
+        desert: '#d97706',       // 진한 사막색
+        mountain: '#64748b',    // 진한 산색
       };
       
       ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
@@ -396,33 +396,6 @@ function FlagMarker({
         </div>
       </Html>
 
-      {/* 방문 횟수 표시 (2회 이상일 때) */}
-      {visits > 1 && (
-        <Html
-          position={[0, 0.08, 0]}
-          center
-          distanceFactor={12}
-          style={{ pointerEvents: 'none', ...hiddenStyle }}
-          transform
-        >
-          <div
-            style={{
-              fontSize: '9px',
-              background: '#dc2626',
-              color: 'white',
-              padding: '1px 4px',
-              borderRadius: '6px',
-              fontWeight: 'bold',
-              transform: 'translate(-50%, -50%)',
-              whiteSpace: 'nowrap',
-              userSelect: 'none',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
-            }}
-          >
-            {visits}
-          </div>
-        </Html>
-      )}
     </group>
   );
 }

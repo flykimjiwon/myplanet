@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Country } from '@/lib/countries';
+import { saveTravelData, loadTravelData, imageToBase64 } from '@/lib/indexedDB';
+import { getCountryRating, saveCountryRating } from '@/lib/localStorage';
 
 interface BoardGameProps {
   visitedCountries: Map<string, number>;
@@ -35,7 +37,88 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
   const [rotationZ, setRotationZ] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [diaryTitle, setDiaryTitle] = useState('');
+  const [diaryText, setDiaryText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
+  const [hoveredRating, setHoveredRating] = useState(0);
+  
   const rotateBoard = (delta: number) => setRotationZ((prev) => prev + delta);
+
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(prev * 1.2, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(prev / 1.2, 0.5));
+  };
+
+  // 데이터 로드
+  useEffect(() => {
+    if (selectedCountry) {
+      loadTravelData().then((data) => {
+        if (data) {
+          setPhoto(data.photo || null);
+          setDiaryTitle(data.title || '');
+          setDiaryText(data.text || '');
+        }
+      });
+      const savedRating = getCountryRating(selectedCountry.code);
+      if (savedRating) {
+        setRating(savedRating.rating);
+        setReview(savedRating.review);
+      } else {
+        setRating(0);
+        setReview('');
+      }
+    }
+  }, [selectedCountry]);
+
+  // 사진 업로드
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('사진 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const base64 = await imageToBase64(file);
+      setPhoto(base64);
+      await saveTravelData({ photo: base64 });
+    } catch (error) {
+      console.error('사진 업로드 실패:', error);
+      alert('사진 업로드에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 사진 삭제
+  const handlePhotoDelete = async () => {
+    setPhoto(null);
+    await saveTravelData({ photo: undefined });
+  };
+
+  // 여행일기 저장
+  const handleDiarySave = async () => {
+    setIsLoading(true);
+    try {
+      await saveTravelData({ title: diaryTitle, text: diaryText });
+      alert('저장되었습니다!');
+    } catch (error) {
+      console.error('저장 실패:', error);
+      alert('저장에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   // 대륙별로 국가 그룹화
   const groupedCountries: Record<string, Country[]> = {};
   
@@ -133,12 +216,49 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
             ↻ 90°
           </button>
         </div>
+        {/* 확대/축소 버튼 */}
+        <div className="absolute top-2 left-2 flex flex-col gap-2 z-50" style={{ top: '50px' }}>
+          <button
+            onClick={handleZoomIn}
+            className="w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95"
+            style={{
+              backgroundColor: '#5AA8E5',
+              border: '2px solid #1F6FB8',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#1F6FB8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#5AA8E5';
+            }}
+          >
+            <span className="text-xl font-bold" style={{ color: '#F8D348' }}>+</span>
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95"
+            style={{
+              backgroundColor: '#5AA8E5',
+              border: '2px solid #1F6FB8',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#1F6FB8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#5AA8E5';
+            }}
+          >
+            <span className="text-xl font-bold" style={{ color: '#F8D348' }}>−</span>
+          </button>
+        </div>
         <div 
           className="relative"
           style={{ 
             width: 'min(90vw, 800px)', 
             height: 'min(90vw, 800px)',
-            transform: `rotateX(${rotationX}deg) rotateY(${rotationY}deg) rotateZ(${rotationZ}deg)`,
+            transform: `scale(${zoom}) rotateX(${rotationX}deg) rotateY(${rotationY}deg) rotateZ(${rotationZ}deg)`,
             transformStyle: 'preserve-3d',
             cursor: isDragging ? 'grabbing' : 'grab',
             transition: isDragging ? 'none' : 'transform 0.1s ease-out'
@@ -201,7 +321,7 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                 {/* 탭 */}
                 <div className="flex border-b-2" style={{ borderColor: '#5AA8E5' }}>
                   {[
-                    { id: 'memory' as TabType, label: '📸 추억', icon: '📸' },
+                    { id: 'memory' as TabType, label: '⭐ 평점', icon: '⭐' },
                     { id: 'info' as TabType, label: 'ℹ️ 정보', icon: 'ℹ️' },
                     { id: 'benefit' as TabType, label: '🎁 혜택', icon: '🎁' },
                   ].map((tab) => (
@@ -224,27 +344,64 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                 {/* 탭 콘텐츠 */}
                 <div className="flex-1 overflow-y-auto p-3 md:p-4">
                   {activeTab === 'memory' && (
-                    <div className="space-y-3">
-                      <div className="text-center py-8 rounded-lg border-2 border-dashed" style={{ borderColor: '#5AA8E5' }}>
-                        <div className="text-4xl mb-2">📷</div>
-                        <p className="text-sm font-semibold mb-2" style={{ color: '#163C69' }}>
-                          추억을 남겨보세요!
-                        </p>
-                        <p className="text-xs" style={{ color: '#5AA8E5' }}>
-                          사진을 업로드하거나 여행 추억을 기록할 수 있습니다
-                        </p>
-                        <button className="mt-3 px-4 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95"
-                          style={{
-                            backgroundColor: '#5AA8E5',
-                            border: '2px solid #1F6FB8',
-                            color: '#FFFFFF',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }}
-                        >
-                          사진 추가하기
-                        </button>
+                    <div className="space-y-4">
+                      {/* 별점 섹션 */}
+                      <div className="rounded-lg p-3" style={{ backgroundColor: '#FFFFFF', border: '2px solid #5AA8E5' }}>
+                        <h4 className="text-sm font-bold mb-3" style={{ color: '#163C69' }}>⭐ 별점</h4>
+                        <div className="flex gap-2 justify-center mb-4">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              onClick={() => {
+                                setRating(star);
+                                saveCountryRating(selectedCountry.code, star, review);
+                              }}
+                              onMouseEnter={() => setHoveredRating(star)}
+                              onMouseLeave={() => setHoveredRating(0)}
+                              className="text-3xl transition-transform hover:scale-110 active:scale-95"
+                            >
+                              {(hoveredRating >= star || (!hoveredRating && rating >= star)) ? '⭐' : '☆'}
+                            </button>
+                          ))}
+                        </div>
+                        {rating > 0 && (
+                          <p className="text-center text-xs font-semibold" style={{ color: '#5AA8E5' }}>
+                            {rating}점을 선택하셨습니다
+                          </p>
+                        )}
                       </div>
-                      {/* 추억 목록 (추후 구현) */}
+
+                      {/* 한줄평 섹션 */}
+                      <div className="rounded-lg p-3" style={{ backgroundColor: '#FFFFFF', border: '2px solid #5AA8E5' }}>
+                        <h4 className="text-sm font-bold mb-3" style={{ color: '#163C69' }}>💬 한줄평</h4>
+                        <textarea
+                          value={review}
+                          onChange={(e) => {
+                            setReview(e.target.value);
+                            if (rating > 0) {
+                              saveCountryRating(selectedCountry.code, rating, e.target.value);
+                            }
+                          }}
+                          placeholder="이 나라에 대한 한줄평을 작성해주세요..."
+                          rows={4}
+                          className="w-full px-3 py-2 rounded-lg text-xs border-2 focus:outline-none resize-none"
+                          style={{
+                            borderColor: '#5AA8E5',
+                            color: '#163C69',
+                          }}
+                          maxLength={100}
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs" style={{ color: '#5AA8E5' }}>
+                            {review.length}/100
+                          </p>
+                          {rating === 0 && (
+                            <p className="text-xs" style={{ color: '#EA3E38' }}>
+                              별점을 먼저 선택해주세요
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -252,18 +409,29 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                     <div className="space-y-3">
                       <div className="rounded-lg p-3" style={{ backgroundColor: '#FFFFFF', border: '2px solid #5AA8E5' }}>
                         <h4 className="text-sm font-bold mb-2" style={{ color: '#163C69' }}>📍 주요 여행지</h4>
-                        <ul className="space-y-1 text-xs" style={{ color: '#5AA8E5' }}>
-                          <li>• 수도 및 주요 도시</li>
-                          <li>• 유명 관광 명소</li>
-                          <li>• 문화 유산</li>
-                          <li>• 자연 경관</li>
-                        </ul>
+                        {selectedCountry.attractions && selectedCountry.attractions.length > 0 ? (
+                          <ul className="space-y-1 text-xs" style={{ color: '#5AA8E5' }}>
+                            {selectedCountry.attractions.map((attraction, index) => (
+                              <li key={index}>• {attraction}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-slate-400">정보 준비 중입니다</p>
+                        )}
                       </div>
                       <div className="rounded-lg p-3" style={{ backgroundColor: '#FFFFFF', border: '2px solid #5AA8E5' }}>
                         <h4 className="text-sm font-bold mb-2" style={{ color: '#163C69' }}>ℹ️ 국가 정보</h4>
                         <div className="text-xs space-y-1" style={{ color: '#5AA8E5' }}>
-                          <p><strong>대륙:</strong> {selectedCountry.continent}</p>
-                          <p><strong>위치:</strong> 위도 {selectedCountry.lat.toFixed(2)}°, 경도 {selectedCountry.lng.toFixed(2)}°</p>
+                          {selectedCountry.info && selectedCountry.info.length > 0 ? (
+                            selectedCountry.info.map((info, index) => (
+                              <p key={index}>{info}</p>
+                            ))
+                          ) : (
+                            <>
+                              <p><strong>대륙:</strong> {selectedCountry.continent}</p>
+                              <p><strong>위치:</strong> 위도 {selectedCountry.lat.toFixed(2)}°, 경도 {selectedCountry.lng.toFixed(2)}°</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -394,7 +562,36 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                           setActiveTab('memory');
                         }
                       }}
-                      title={isVisited ? `${country.name} (${country.nameEn}) - 클릭하여 상세 정보 보기` : `${country.name} (${country.nameEn}) - 아직 방문하지 않음`}
+                      onMouseEnter={(e) => {
+                        if (isVisited) {
+                          const tooltip = document.createElement('div');
+                          tooltip.id = `tooltip-${country.code}`;
+                          tooltip.textContent = country.name;
+                          tooltip.style.cssText = `
+                            position: absolute;
+                            background-color: #163C69;
+                            color: #FFFFFF;
+                            padding: 6px 12px;
+                            border-radius: 6px;
+                            font-size: 12px;
+                            font-weight: bold;
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                            white-space: nowrap;
+                          `;
+                          document.body.appendChild(tooltip);
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+                          tooltip.style.top = `${rect.top - tooltip.offsetHeight - 8}px`;
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        const tooltip = document.getElementById(`tooltip-${country.code}`);
+                        if (tooltip) {
+                          tooltip.remove();
+                        }
+                      }}
                     >
                       {/* 떠 있는 국기 배지 (카드 상단) */}
                       {isVisited && (
@@ -435,16 +632,6 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
                         </div>
                       )}
 
-                      {/* 방문 횟수 표시 */}
-                      {isVisited && visits > 1 && (
-                        <div className="text-[9px] md:text-[11px] font-bold px-1.5 py-0.5 rounded" style={{
-                          backgroundColor: '#EA3E38',
-                          color: '#FFFFFF',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                        }}>
-                          {visits}회
-                        </div>
-                      )}
                       
                       {/* 선택된 카드 표시 */}
                       {isSelected && (

@@ -125,7 +125,7 @@ export default function ModeToggle({ mode, onToggle }: ModeToggleProps) {
           </p>
         ) : mode === 'flat' ? (
           <p className="text-xs font-semibold" style={{ color: '#F8D348' }}>
-            🗺️ 오늘만큼은 평평파 모드!
+            🗺️ 지구는 평평하다!
           </p>
         ) : (
           <p className="text-xs font-semibold" style={{ color: '#F8D348' }}>

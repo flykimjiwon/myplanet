@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Country, continents } from '@/lib/countries';
+import { getCountryRating } from '@/lib/localStorage';
 
 interface CountrySelectorProps {
   countries: Country[];
@@ -10,6 +11,7 @@ interface CountrySelectorProps {
   onIncreaseVisits: (code: string) => void;
   onDecreaseVisits: (code: string) => void;
   onResetAll: () => void;
+  onOpenRating?: (code: string) => void; // 평점 추가 버튼 클릭 시
 }
 
 // 대륙별 아이콘 및 색상
@@ -30,6 +32,7 @@ export default function CountrySelector({
   onIncreaseVisits,
   onDecreaseVisits,
   onResetAll,
+  onOpenRating,
 }: CountrySelectorProps) {
   const [selectedContinent, setSelectedContinent] = useState<string>("전체");
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,13 +122,13 @@ export default function CountrySelector({
       {/* 검색 */}
       <div className="mb-3">
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl" style={{ color: '#F8D348' }}>🔍</span>
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl" style={{ color: '#F8D348' }}>🔍</span>
           <input
             type="text"
-            placeholder="국가 검색 (한글/영어)..."
+            placeholder="국가 이름을 입력하세요..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-lg focus:outline-none text-base font-medium transition-all"
+            className="w-full pl-4 pr-12 py-4 rounded-lg focus:outline-none text-base font-medium transition-all"
             style={{ 
               backgroundColor: '#E3F2FD', 
               border: '2px solid #1F6FB8',
@@ -187,11 +190,11 @@ export default function CountrySelector({
                   }
                 }}
               >
-                <span className="text-base lg:text-base mb-0.5">{style.icon}</span>
-                <span className="text-[9px] lg:text-[9px] font-semibold whitespace-nowrap leading-tight">
+                <span className="text-base lg:text-lg mb-0.5">{style.icon}</span>
+                <span className="text-xs lg:text-sm font-bold whitespace-nowrap leading-tight">
                   {continent === "북아메리카" ? "북미" : continent === "남아메리카" ? "남미" : continent}
                 </span>
-                <span className="text-[8px] lg:text-[8px] opacity-80">
+                <span className="text-[9px] lg:text-[10px] opacity-80 font-semibold">
                   {countryCount}
                 </span>
               </button>
@@ -211,6 +214,17 @@ export default function CountrySelector({
           filteredCountries.map((country) => {
             const visits = visitedCountries.get(country.code) || 0;
             const isVisited = visits > 0;
+            const rating = isVisited ? getCountryRating(country.code) : null;
+            const getRatingEmoji = (rating: number | null) => {
+              if (!rating) return null;
+              if (rating === 5) return '😄';
+              if (rating === 4) return '🙂';
+              if (rating === 3) return '😐';
+              if (rating === 2) return '😕';
+              if (rating === 1) return '😠';
+              return null;
+            };
+            const ratingEmoji = getRatingEmoji(rating?.rating || null);
             return (
               <div
                 key={country.code}
@@ -248,7 +262,23 @@ export default function CountrySelector({
                   >
                     <span className="text-xl flex-shrink-0">{country.flag}</span>
                     <div className="text-left min-w-0 flex-1">
-                      <p className="font-semibold text-sm truncate" style={{ color: isVisited ? '#FFFFFF' : '#163C69' }}>{country.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold text-sm truncate" style={{ color: isVisited ? '#FFFFFF' : '#163C69' }}>{country.name}</p>
+                        {ratingEmoji && (
+                          <span 
+                            className="text-base cursor-pointer flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onOpenRating) {
+                                onOpenRating(country.code);
+                              }
+                            }}
+                            title={`평점: ${rating?.rating}점`}
+                          >
+                            {ratingEmoji}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs truncate opacity-80" style={{ color: isVisited ? '#F8D348' : '#5AA8E5' }}>{country.nameEn} · {country.continent}</p>
                     </div>
                   </button>
@@ -304,6 +334,29 @@ export default function CountrySelector({
                       >
                         +
                       </button>
+                      {onOpenRating && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenRating(country.code);
+                          }}
+                          className="px-2 py-1 rounded-md flex items-center gap-1 font-semibold text-xs border-2 active:scale-90 transition-all"
+                          style={{ 
+                            backgroundColor: '#5AA8E5',
+                            borderColor: '#1F6FB8',
+                            color: '#FFFFFF',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#1F6FB8';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#5AA8E5';
+                          }}
+                        >
+                          ⭐ {ratingEmoji ? '수정' : '평점'}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

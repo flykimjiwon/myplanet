@@ -592,21 +592,17 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
                 <circle r={markerSize - 1} fill="#fcd34d" opacity="0.9" />
                 
                 {/* 방문 횟수 텍스트 */}
-                {visits > 1 && (
-                  <>
-                    <circle r="8" fill="#dc2626" cx="8" cy="8" />
-                    <text
-                      x="8"
-                      y="12"
-                      textAnchor="middle"
-                      fill="white"
-                      fontSize="9"
-                      fontWeight="bold"
-                    >
-                      {visits}
-                    </text>
-                  </>
-                )}
+                <circle r="8" fill="#dc2626" cx="8" cy="8" />
+                <text
+                  x="8"
+                  y="12"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="9"
+                  fontWeight="bold"
+                >
+                  {visits}
+                </text>
                 
                 {/* 국가 이름 */}
                 <text
