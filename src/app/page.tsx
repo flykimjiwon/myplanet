@@ -8,6 +8,12 @@ import FlatMap from '@/components/FlatMap';
 import BoardGame from '@/components/BoardGame';
 import { countries } from '@/lib/countries';
 import { loadVisitedCountries, saveVisitedCountries, clearVisitedCountries, getCountryRating, saveCountryRating } from '@/lib/localStorage';
+import { getVisitedCountries, syncVisitedCountries, upsertVisitedCountry, deleteVisitedCountry } from '@/lib/supabase/visitedCountries';
+import { getCountryRating as getSupabaseRating, saveCountryRating as saveSupabaseRating } from '@/lib/supabase/ratings';
+import { getCurrentUser, signOut } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 
 // Scene 컴포넌트는 클라이언트에서만 렌더링 (SSR 방지)
 const Scene = dynamic(() => import('@/components/Scene'), {
@@ -25,9 +31,12 @@ const Scene = dynamic(() => import('@/components/Scene'), {
 type ViewMode = 'globe' | 'flat' | 'board';
 
 export default function Home() {
+  const router = useRouter();
   const [visitedCountries, setVisitedCountries] = useState<Map<string, number>>(new Map());
   const [mode, setMode] = useState<ViewMode>('globe');
   const [mounted, setMounted] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // 초기 로드 중인지 추적
   const [ratingModal, setRatingModal] = useState<{ open: boolean; countryCode: string | null }>({ open: false, countryCode: null });
   const [statsCardCollapsed, setStatsCardCollapsed] = useState(false);
   const [statsCardPosition, setStatsCardPosition] = useState({ x: 0, y: 0 });
@@ -37,59 +46,177 @@ export default function Home() {
   // 클라이언트에서만 마운트되도록 처리 (hydration 오류 방지)
   useEffect(() => {
     setMounted(true);
-    // 로컬스토리지에서 방문한 나라 데이터 불러오기
-    const saved = loadVisitedCountries();
-    if (saved.size > 0) {
-      setVisitedCountries(saved);
-    }
-
+    
+    // 인증 상태 확인 및 데이터 로드
+    const loadData = async () => {
+      setIsInitialLoad(true); // 초기 로드 시작
+      const user = await getCurrentUser();
+      setIsAuthenticated(user !== null);
+      
+      if (user) {
+        // 로그인된 경우: Supabase에서만 데이터 로드
+        console.log('📥 [page.tsx] 로그인 상태 - Supabase에서 데이터 로드');
+        const supabaseData = await getVisitedCountries();
+        if (supabaseData.size > 0) {
+          console.log('✅ [page.tsx] Supabase에서 방문 국가 로드 성공:', supabaseData.size, '개');
+          setVisitedCountries(supabaseData);
+        } else {
+          console.log('ℹ️ [page.tsx] Supabase에 방문 국가 없음');
+          setVisitedCountries(new Map());
+        }
+      } else {
+        // 로그인 안 된 경우: 상태 관리만 사용 (휘발성, 새로고침 시 초기화)
+        console.log('📥 [page.tsx] 비로그인 상태 - 상태 관리만 사용 (휘발성)');
+        setVisitedCountries(new Map());
+      }
+      
+      // 초기 로드 완료
+      setTimeout(() => {
+        setIsInitialLoad(false);
+        console.log('✅ [page.tsx] 초기 로드 완료, 자동 저장 활성화');
+      }, 1000); // 데이터 로드 후 1초 대기
+    };
+    
+    loadData();
   }, []);
 
-  // 방문한 나라 상태가 변경될 때마다 로컬스토리지에 저장
+  // 방문한 나라 상태가 변경될 때마다 저장 (로그인 상태에서만)
   useEffect(() => {
-    if (mounted) {
-      saveVisitedCountries(visitedCountries);
+    // 초기 로드 중이거나 마운트되지 않았거나 로그인하지 않은 경우 저장하지 않음
+    if (!mounted || !isAuthenticated || isInitialLoad) {
+      if (isInitialLoad) {
+        console.log('⏸️ [자동 저장] 초기 로드 중이므로 저장 건너뜀');
+      }
+      return;
     }
-  }, [visitedCountries, mounted]);
-
-  const handleToggleCountry = (code: string) => {
-    setVisitedCountries((prev) => {
-      const newMap = new Map(prev);
-      if (newMap.has(code)) {
-        newMap.delete(code);
+    
+    const saveData = async () => {
+      // 로그인 상태에서만 Supabase에 저장
+      console.log('💾 [자동 저장] 시작:', { 
+        방문국가수: visitedCountries.size, 
+        isAuthenticated,
+        국가목록: Array.from(visitedCountries.entries())
+      });
+      
+      console.log('☁️ [자동 저장] Supabase 동기화 시작...');
+      const success = await syncVisitedCountries(visitedCountries);
+      if (success) {
+        console.log('✅ [자동 저장] Supabase 동기화 성공');
       } else {
-        newMap.set(code, 1);
+        console.warn('⚠️ [자동 저장] Supabase 저장 실패 (이메일 인증 미완료 등)');
       }
-      return newMap;
-    });
-  };
+    };
+    
+    // 디바운싱: 너무 자주 저장하지 않도록
+    const timeoutId = setTimeout(() => {
+      saveData();
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [visitedCountries, mounted, isAuthenticated, isInitialLoad]);
 
-  const handleIncreaseVisits = (code: string) => {
-    setVisitedCountries((prev) => {
-      const newMap = new Map(prev);
-      const current = newMap.get(code) || 0;
-      newMap.set(code, current + 1);
-      return newMap;
-    });
-  };
-
-  const handleDecreaseVisits = (code: string) => {
-    setVisitedCountries((prev) => {
-      const newMap = new Map(prev);
-      const current = newMap.get(code) || 0;
-      if (current > 1) {
-        newMap.set(code, current - 1);
+  const handleToggleCountry = async (code: string) => {
+    console.log('🔄 [방문 국가 토글] 시작:', { code, isAuthenticated, 현재상태: visitedCountries.has(code) });
+    const newMap = new Map(visitedCountries);
+    if (newMap.has(code)) {
+      newMap.delete(code);
+      console.log('🗑️ [방문 국가 삭제] 국가 코드:', code);
+      // Supabase에서 삭제
+      if (isAuthenticated) {
+        console.log('☁️ [Supabase] 삭제 요청 시작...');
+        const result = await deleteVisitedCountry(code);
+        console.log('☁️ [Supabase] 삭제 결과:', result ? '✅ 성공' : '❌ 실패');
       } else {
-        newMap.delete(code);
+        console.log('💭 [상태 관리] 삭제 (휘발성)');
       }
-      return newMap;
-    });
+    } else {
+      newMap.set(code, 1);
+      console.log('➕ [방문 국가 추가] 국가 코드:', code, '방문 횟수: 1');
+      // Supabase에 추가
+      if (isAuthenticated) {
+        console.log('☁️ [Supabase] 추가 요청 시작...');
+        const result = await upsertVisitedCountry(code, 1);
+        console.log('☁️ [Supabase] 추가 결과:', result ? '✅ 성공' : '❌ 실패');
+      } else {
+        console.log('💭 [상태 관리] 추가 (휘발성)');
+      }
+    }
+    setVisitedCountries(newMap);
+    console.log('✅ [방문 국가 토글] 완료, 새로운 상태:', Array.from(newMap.entries()));
   };
 
-  const handleResetAll = () => {
+  const handleIncreaseVisits = async (code: string) => {
+    const current = visitedCountries.get(code) || 0;
+    const newVisits = current + 1;
+    console.log('➕ [방문 횟수 증가] 국가 코드:', code, `현재: ${current} → 새로운: ${newVisits}`, { isAuthenticated });
+    const newMap = new Map(visitedCountries);
+    newMap.set(code, newVisits);
+    setVisitedCountries(newMap);
+    
+    // 로그인 상태에서만 Supabase에 업데이트
+    if (isAuthenticated) {
+      console.log('☁️ [Supabase] 업데이트 요청 시작...');
+      const result = await upsertVisitedCountry(code, newVisits);
+      console.log('☁️ [Supabase] 업데이트 결과:', result ? '✅ 성공' : '❌ 실패');
+    } else {
+      console.log('💭 [상태 관리] 업데이트 (휘발성)');
+    }
+  };
+
+  const handleDecreaseVisits = async (code: string) => {
+    const current = visitedCountries.get(code) || 0;
+    console.log('➖ [방문 횟수 감소] 국가 코드:', code, `현재: ${current}`, { isAuthenticated });
+    const newMap = new Map(visitedCountries);
+    if (current > 1) {
+      const newVisits = current - 1;
+      newMap.set(code, newVisits);
+      setVisitedCountries(newMap);
+      console.log('📉 [방문 횟수 감소] 새로운 횟수:', newVisits);
+      // 로그인 상태에서만 Supabase에 업데이트
+      if (isAuthenticated) {
+        console.log('☁️ [Supabase] 업데이트 요청 시작...');
+        const result = await upsertVisitedCountry(code, newVisits);
+        console.log('☁️ [Supabase] 업데이트 결과:', result ? '✅ 성공' : '❌ 실패');
+      } else {
+        console.log('💭 [상태 관리] 업데이트 (휘발성)');
+      }
+    } else {
+      newMap.delete(code);
+      setVisitedCountries(newMap);
+      console.log('🗑️ [방문 국가 삭제] (방문 횟수가 0이 됨)');
+      // 로그인 상태에서만 Supabase에서 삭제
+      if (isAuthenticated) {
+        console.log('☁️ [Supabase] 삭제 요청 시작...');
+        const result = await deleteVisitedCountry(code);
+        console.log('☁️ [Supabase] 삭제 결과:', result ? '✅ 성공' : '❌ 실패');
+      } else {
+        console.log('💭 [상태 관리] 삭제 (휘발성)');
+      }
+    }
+  };
+
+  const handleResetAll = async () => {
     if (confirm('모든 방문 기록을 초기화하시겠습니까?')) {
       setVisitedCountries(new Map());
-      clearVisitedCountries();
+      if (isAuthenticated) {
+        await syncVisitedCountries(new Map());
+      } else {
+        clearVisitedCountries();
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    if (confirm('로그아웃하시겠습니까?')) {
+      const success = await signOut();
+      if (success) {
+        // 인증 상태 업데이트
+        setIsAuthenticated(false);
+        // 방문 국가 데이터 초기화 (Supabase 데이터 제거)
+        setVisitedCountries(new Map());
+        // 메인 화면으로 이동
+        window.location.href = '/';
+      }
     }
   };
 
@@ -177,6 +304,68 @@ export default function Home() {
 
   return (
     <main className="h-screen w-screen overflow-hidden" style={{ backgroundColor: '#FCECA3' }}>
+      {/* 이메일 인증 안내 배너 */}
+      {isAuthenticated && <EmailVerificationBanner />}
+      
+      {/* 로그인/로그아웃 버튼 */}
+      <div className="absolute top-2 right-2 z-50 flex gap-2">
+        {isAuthenticated ? (
+          <>
+            <button
+              onClick={() => router.push('/mypage')}
+              className="px-4 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95"
+              style={{
+                backgroundColor: '#5AA8E5',
+                border: '2px solid #1F6FB8',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              }}
+            >
+              마이페이지
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95"
+              style={{
+                backgroundColor: '#EA3E38',
+                border: '2px solid #D72C2A',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              }}
+            >
+              로그아웃
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => router.push('/login')}
+              className="px-4 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95"
+              style={{
+                backgroundColor: '#5AA8E5',
+                border: '2px solid #1F6FB8',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              }}
+            >
+              로그인
+            </button>
+            <button
+              onClick={() => router.push('/signup')}
+              className="px-4 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95"
+              style={{
+                backgroundColor: '#F8D348',
+                border: '2px solid #F2B705',
+                color: '#163C69',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              }}
+            >
+              회원가입
+            </button>
+          </>
+        )}
+      </div>
+
       <div className="h-full w-full flex flex-col lg:flex-row">
         {/* 국가 선택 사이드바 */}
         <div className="w-full lg:w-96 h-[35%] lg:h-full overflow-hidden">
@@ -236,7 +425,7 @@ export default function Home() {
                   }
                 }}
               />
-            ) : (
+            ) : mode === 'board' ? (
               <BoardGame 
                 visitedCountries={visitedCountries} 
                 countries={countries}
@@ -245,8 +434,10 @@ export default function Home() {
                     handleToggleCountry(country.code);
                   }
                 }}
+                onIncreaseVisits={handleIncreaseVisits}
+                onDecreaseVisits={handleDecreaseVisits}
               />
-            )}
+            ) : null}
 
             {/* 로고 & 통계 */}
             <div 
@@ -401,19 +592,47 @@ function RatingModal({ countryCode, country, onClose }: { countryCode: string; c
   const [hoveredRating, setHoveredRating] = useState(0);
 
   useEffect(() => {
-    const saved = getCountryRating(countryCode);
-    if (saved) {
-      setRating(saved.rating);
-      setReview(saved.review);
-    }
+    const loadRating = async () => {
+      const user = await getCurrentUser();
+      if (user) {
+        // Supabase에서 로드
+        const saved = await getSupabaseRating(countryCode);
+        if (saved) {
+          setRating(saved.rating);
+          setReview(saved.review || '');
+        } else {
+          setRating(0);
+          setReview('');
+        }
+      } else {
+        // localStorage에서 로드 (하위 호환)
+        const saved = getCountryRating(countryCode);
+        if (saved) {
+          setRating(saved.rating);
+          setReview(saved.review);
+        } else {
+          setRating(0);
+          setReview('');
+        }
+      }
+    };
+    loadRating();
   }, [countryCode]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (rating === 0) {
       alert('별점을 선택해주세요.');
       return;
     }
-    saveCountryRating(countryCode, rating, review);
+    
+    const user = await getCurrentUser();
+    if (user) {
+      // Supabase에 저장
+      await saveSupabaseRating(countryCode, rating, review || null);
+    } else {
+      // localStorage에 저장 (하위 호환)
+      saveCountryRating(countryCode, rating, review);
+    }
     onClose();
   };
 

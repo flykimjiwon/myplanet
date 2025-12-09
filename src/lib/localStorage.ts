@@ -31,6 +31,9 @@ export function saveCountryRating(code: string, rating: number, review: string):
     }
     
     localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings));
+    
+    // 같은 탭에서의 변경을 감지하기 위한 custom event 발생
+    window.dispatchEvent(new Event('localStorageChange'));
   } catch (error) {
     console.error('평점 저장 실패:', error);
   }
@@ -97,6 +100,77 @@ export function clearVisitedCountries(): void {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
     console.error('로컬스토리지 삭제 실패:', error);
+  }
+}
+
+// 여행 일기 데이터 저장 (비로그인 상태용)
+const TRAVEL_MEMORIES_KEY = 'myplanet_travel_memories';
+
+export interface TravelMemory {
+  country_code: string;
+  photo?: string; // base64 이미지
+  title?: string;
+  text?: string;
+  updatedAt: number;
+}
+
+export function saveTravelMemory(countryCode: string, photo?: string, title?: string, text?: string): void {
+  try {
+    const stored = localStorage.getItem(TRAVEL_MEMORIES_KEY);
+    const memories: TravelMemory[] = stored ? JSON.parse(stored) : [];
+    const index = memories.findIndex(m => m.country_code === countryCode);
+    
+    const memory: TravelMemory = {
+      country_code: countryCode,
+      photo,
+      title,
+      text,
+      updatedAt: Date.now(),
+    };
+    
+    if (index >= 0) {
+      // 기존 데이터와 병합 (undefined인 필드는 기존 값 유지)
+      const existing = memories[index];
+      memories[index] = {
+        ...existing,
+        ...memory,
+        photo: photo !== undefined ? photo : existing.photo,
+        title: title !== undefined ? title : existing.title,
+        text: text !== undefined ? text : existing.text,
+      };
+    } else {
+      memories.push(memory);
+    }
+    
+    localStorage.setItem(TRAVEL_MEMORIES_KEY, JSON.stringify(memories));
+  } catch (error) {
+    console.error('여행 일기 저장 실패:', error);
+  }
+}
+
+export function getTravelMemory(countryCode: string): TravelMemory | null {
+  try {
+    const stored = localStorage.getItem(TRAVEL_MEMORIES_KEY);
+    if (!stored) return null;
+    
+    const memories: TravelMemory[] = JSON.parse(stored);
+    return memories.find(m => m.country_code === countryCode) || null;
+  } catch (error) {
+    console.error('여행 일기 불러오기 실패:', error);
+    return null;
+  }
+}
+
+export function deleteTravelMemory(countryCode: string): void {
+  try {
+    const stored = localStorage.getItem(TRAVEL_MEMORIES_KEY);
+    if (!stored) return;
+    
+    const memories: TravelMemory[] = JSON.parse(stored);
+    const filtered = memories.filter(m => m.country_code !== countryCode);
+    localStorage.setItem(TRAVEL_MEMORIES_KEY, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('여행 일기 삭제 실패:', error);
   }
 }
 

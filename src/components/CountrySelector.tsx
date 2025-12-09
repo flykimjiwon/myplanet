@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Country, continents } from '@/lib/countries';
-import { getCountryRating } from '@/lib/localStorage';
+import { getCountryRating, getAllRatings as getAllLocalRatings } from '@/lib/localStorage';
+import { getAllRatings } from '@/lib/supabase/ratings';
+import { getCurrentUser } from '@/lib/auth';
 
 interface CountrySelectorProps {
   countries: Country[];
@@ -36,6 +38,61 @@ export default function CountrySelector({
   onOpenRating,
   mode = 'globe',
 }: CountrySelectorProps) {
+  const [ratings, setRatings] = useState<Map<string, { rating: number; review: string | null }>>(new Map());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // 평점 데이터 로드 및 동기화
+  useEffect(() => {
+    const loadRatings = async () => {
+      const user = await getCurrentUser();
+      setIsAuthenticated(user !== null);
+      
+      if (user) {
+        // 로그인 시: Supabase에서 모든 평점 로드
+        const supabaseRatings = await getAllRatings();
+        const ratingsMap = new Map<string, { rating: number; review: string | null }>();
+        supabaseRatings.forEach((value, key) => {
+          ratingsMap.set(key, { rating: value.rating, review: value.review });
+        });
+        setRatings(ratingsMap);
+      } else {
+        // 비로그인 시: localStorage에서 모든 평점 로드 (BoardGame과 동기화)
+        const localRatings = getAllLocalRatings();
+        const ratingsMap = new Map<string, { rating: number; review: string | null }>();
+        localRatings.forEach((value, key) => {
+          ratingsMap.set(key, { rating: value.rating, review: value.review });
+        });
+        setRatings(ratingsMap);
+      }
+    };
+    
+    loadRatings();
+    
+    // localStorage 변경 감지 (비로그인 상태에서 BoardGame에서 평점 저장 시 동기화)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'myplanet_country_ratings' && !isAuthenticated) {
+        console.log('🔄 [CountrySelector] localStorage 평점 변경 감지, 동기화 중...');
+        loadRatings();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // 같은 탭에서의 localStorage 변경도 감지 (custom event)
+    const handleCustomStorageChange = () => {
+      if (!isAuthenticated) {
+        console.log('🔄 [CountrySelector] localStorage 평점 변경 감지 (같은 탭), 동기화 중...');
+        loadRatings();
+      }
+    };
+    
+    window.addEventListener('localStorageChange', handleCustomStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+    };
+  }, [isAuthenticated]);
   const [selectedContinent, setSelectedContinent] = useState<string>("전체");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -226,7 +283,23 @@ export default function CountrySelector({
           filteredCountries.map((country) => {
           const visits = visitedCountries.get(country.code) || 0;
           const isVisited = visits > 0;
-            const rating = isVisited ? getCountryRating(country.code) : null;
+            // 평점 가져오기
+            let rating: { rating: number; review: string | null } | null = null;
+            if (isVisited) {
+              if (isAuthenticated) {
+                // Supabase에서 가져오기
+                const supabaseRating = ratings.get(country.code);
+                if (supabaseRating) {
+                  rating = supabaseRating;
+                }
+              } else {
+                // localStorage에서 가져오기 (하위 호환)
+                const localRating = getCountryRating(country.code);
+                if (localRating) {
+                  rating = { rating: localRating.rating, review: localRating.review };
+                }
+              }
+            }
             const getRatingEmoji = (rating: number | null) => {
               if (!rating) return null;
               if (rating === 5) return '😄';
