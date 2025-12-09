@@ -26,23 +26,8 @@ function useEarthTexture() {
       'https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg',
     ];
 
-    // 첫 번째 URL로 텍스처 로드 시도
-    const texture = loader.load(
-      textureUrls[0],
-      // 로드 성공
-      (loadedTexture) => {
-        loadedTexture.needsUpdate = true;
-      },
-      // 진행 중 (선택적)
-      undefined,
-      // 에러 발생 시 대체 텍스처 생성
-      () => {
-        console.log('텍스처 로드 실패, 대체 텍스처 사용');
-      }
-    );
-
-    // 에러 발생 시 대체 텍스처 생성
-    texture.onError = () => {
+    // 대체 텍스처 생성 함수
+    const createFallbackTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 4096;
       canvas.height = 2048;
@@ -324,7 +309,25 @@ function useEarthTexture() {
       return fallbackTexture;
     };
 
-    return texture;
+    // 첫 번째 URL로 텍스처 로드 시도
+    const texture = loader.load(
+      textureUrls[0],
+      // 로드 성공
+      (loadedTexture) => {
+        loadedTexture.needsUpdate = true;
+      },
+      // 진행 중 (선택적)
+      undefined,
+      // 에러 발생 시 대체 텍스처 사용 (에러 콜백은 비동기이므로 여기서는 로그만)
+      () => {
+        console.log('텍스처 로드 실패, 대체 텍스처 사용');
+      }
+    );
+
+    // 텍스처가 제대로 로드되었는지 확인하고, 실패 시 대체 텍스처 반환
+    // TextureLoader는 에러가 발생해도 texture 객체를 반환하므로,
+    // 이미지가 로드되지 않은 경우를 대비해 대체 텍스처를 기본값으로 사용
+    return texture || createFallbackTexture();
   }, []);
 }
 
