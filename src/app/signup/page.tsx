@@ -37,11 +37,13 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient();
+      // 프로덕션 URL 우선, 없으면 현재 origin 사용
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       });
 

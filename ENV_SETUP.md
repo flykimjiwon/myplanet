@@ -22,6 +22,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=여기에_anon_public_key_입력
 SUPABASE_SERVICE_ROLE_KEY=여기에_service_role_key_입력
 OPENAI_API_KEY=여기에_openai_api_key_입력
 ADMIN_EMAILS=admin@example.com,another@example.com
+NEXT_PUBLIC_SITE_URL=https://myplanet-ashen.vercel.app
 ```
 
 ### 예시 (Project URL을 확인한 후)
@@ -38,6 +39,7 @@ ADMIN_EMAILS=admin@example.com,another@example.com
 - Supabase 키는 `GET_SUPABASE_CREDENTIALS.md` 참고
 - OpenAI API 키는 https://platform.openai.com 에서 발급
 - `ADMIN_EMAILS`: 관리자 이메일 목록 (쉼표로 구분). 관리자는 하루 100회 추천 가능, 일반 사용자는 10회
+- `NEXT_PUBLIC_SITE_URL`: 프로덕션 사이트 URL (예: https://myplanet-ashen.vercel.app). 메일 인증 링크에 사용됩니다.
 
 ## Project URL 찾는 방법
 
@@ -51,6 +53,21 @@ ADMIN_EMAILS=admin@example.com,another@example.com
 - ⚠️ **Secret key는 사용하지 마세요!** 서버 사이드에서만 사용하는 키입니다.
 - ✅ **Publishable key**를 사용하세요. 이것이 클라이언트에서 사용하는 안전한 키입니다.
 - `.env.local` 파일은 `.gitignore`에 포함되어 있어 Git에 커밋되지 않습니다.
+
+## Supabase Site URL 설정 (중요!)
+
+메일 인증 링크가 올바르게 작동하려면 Supabase Dashboard에서 Site URL을 설정해야 합니다:
+
+1. Supabase Dashboard 접속
+2. Settings > Authentication으로 이동
+3. "Site URL" 섹션에서 프로덕션 URL 입력:
+   - `https://myplanet-ashen.vercel.app`
+4. "Redirect URLs"에 다음 추가:
+   - `https://myplanet-ashen.vercel.app/auth/callback`
+   - `https://myplanet-ashen.vercel.app/**` (와일드카드 허용)
+5. 저장
+
+**참고:** 개발 환경에서는 localhost가 자동으로 사용되지만, 프로덕션에서는 위 설정이 필요합니다.
 
 ## 설정 확인
 
