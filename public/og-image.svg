@@ -1,0 +1,84 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <rect width="1200" height="630" fill="#FEF9E7"/>
+  
+  <!-- 지구 캐릭터 몸체 (원형) -->
+  <defs>
+    <pattern id="earthPattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+      <!-- 대륙 (녹색) -->
+      <path d="M20,30 Q30,20 40,30 T60,30 Q70,25 80,35 T90,40 Q85,50 75,55 T60,60 Q50,55 40,60 T20,55 Q15,45 20,30 Z" fill="#90EE90" opacity="0.8"/>
+      <path d="M10,70 Q15,60 25,70 T45,75 Q50,65 60,70 T80,75 Q75,85 65,90 T45,85 Q35,80 25,85 T10,75 Z" fill="#90EE90" opacity="0.8"/>
+      <path d="M70,10 Q80,15 85,25 T80,40 Q75,35 70,40 T60,35 Q55,25 60,15 T70,10 Z" fill="#90EE90" opacity="0.8"/>
+    </pattern>
+  </defs>
+  
+  <!-- 지구 몸통 (파란색 바다 + 대륙 패턴) -->
+  <circle cx="600" cy="315" r="180" fill="#4A90E2" stroke="#1a1a1a" stroke-width="4"/>
+  <circle cx="600" cy="315" r="180" fill="url(#earthPattern)"/>
+  
+  <!-- 배낭 (등 뒤) -->
+  <ellipse cx="480" cy="280" rx="25" ry="35" fill="#8B6914" stroke="#1a1a1a" stroke-width="3"/>
+  <rect x="470" y="250" width="20" height="15" fill="#A0822D" rx="2"/>
+  <ellipse cx="480" cy="290" rx="8" ry="5" fill="#654321"/>
+  
+  <!-- 왼쪽 팔 (허리에) -->
+  <ellipse cx="450" cy="320" rx="25" ry="15" fill="#4A90E2" stroke="#1a1a1a" stroke-width="3"/>
+  <ellipse cx="430" cy="330" rx="20" ry="12" fill="#4A90E2" stroke="#1a1a1a" stroke-width="3"/>
+  <!-- 왼쪽 손 (장갑) -->
+  <ellipse cx="410" cy="335" rx="15" ry="18" fill="#FFFFFF" stroke="#1a1a1a" stroke-width="2"/>
+  
+  <!-- 오른쪽 팔 (여권 들고) -->
+  <ellipse cx="750" cy="300" rx="25" ry="15" fill="#4A90E2" stroke="#1a1a1a" stroke-width="3"/>
+  <ellipse cx="780" cy="290" rx="20" ry="12" fill="#4A90E2" stroke="#1a1a1a" stroke-width="3"/>
+  <!-- 오른쪽 손 (장갑) -->
+  <ellipse cx="800" cy="285" rx="15" ry="18" fill="#FFFFFF" stroke="#1a1a1a" stroke-width="2"/>
+  
+  <!-- 여권 (오른손에) -->
+  <rect x="810" y="270" width="35" height="45" fill="#1E3A8A" rx="3" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="827" y="295" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFD700">PASS</text>
+  <circle cx="827" cy="305" r="2" fill="#FFD700"/>
+  
+  <!-- 카메라 (목에) -->
+  <rect x="580" y="250" width="40" height="30" fill="#8B4513" rx="5" stroke="#1a1a1a" stroke-width="2"/>
+  <circle cx="600" cy="265" r="8" fill="#1a1a1a"/>
+  <rect x="590" y="255" width="20" height="5" fill="#654321"/>
+  <line x1="580" y1="250" x2="575" y2="245" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>
+  <line x1="620" y1="250" x2="625" y2="245" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- 얼굴 -->
+  <!-- 눈 -->
+  <circle cx="560" cy="280" r="25" fill="#FFFFFF" stroke="#1a1a1a" stroke-width="3"/>
+  <circle cx="640" cy="280" r="25" fill="#FFFFFF" stroke="#1a1a1a" stroke-width="3"/>
+  <circle cx="560" cy="280" r="12" fill="#1a1a1a"/>
+  <circle cx="640" cy="280" r="12" fill="#1a1a1a"/>
+  
+  <!-- 눈썹 -->
+  <path d="M535,260 Q545,250 560,255 Q575,250 580,260" fill="none" stroke="#1a1a1a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M620,260 Q635,250 650,255 Q665,250 670,260" fill="none" stroke="#1a1a1a" stroke-width="5" stroke-linecap="round"/>
+  
+  <!-- 입 (웃는 모양) -->
+  <path d="M580,320 Q600,340 620,320" fill="none" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- 모자 -->
+  <ellipse cx="600" cy="200" rx="100" ry="30" fill="#FFA500" stroke="#1a1a1a" stroke-width="4"/>
+  <ellipse cx="600" cy="190" rx="90" ry="25" fill="#FF8C00" stroke="#1a1a1a" stroke-width="3"/>
+  <rect x="550" y="190" width="100" height="8" fill="#FFB347" rx="2"/>
+  <ellipse cx="600" cy="185" rx="85" ry="20" fill="#FFA500" stroke="#1a1a1a" stroke-width="2"/>
+  
+  <!-- 다리 -->
+  <ellipse cx="550" cy="480" rx="20" ry="25" fill="#4A90E2" stroke="#1a1a1a" stroke-width="3"/>
+  <ellipse cx="650" cy="480" rx="20" ry="25" fill="#4A90E2" stroke="#1a1a1a" stroke-width="3"/>
+  
+  <!-- 양말 -->
+  <ellipse cx="550" cy="505" rx="18" ry="15" fill="#FFFFFF" stroke="#1a1a1a" stroke-width="2"/>
+  <ellipse cx="650" cy="505" rx="18" ry="15" fill="#FFFFFF" stroke="#1a1a1a" stroke-width="2"/>
+  
+  <!-- 신발 -->
+  <ellipse cx="550" cy="525" rx="25" ry="12" fill="#1E3A8A" stroke="#1a1a1a" stroke-width="3"/>
+  <ellipse cx="650" cy="525" rx="25" ry="12" fill="#1E3A8A" stroke="#1a1a1a" stroke-width="3"/>
+  
+  <!-- 텍스트: My Planet -->
+  <text x="600" y="580" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#163C69" text-anchor="middle">My Planet</text>
+  <text x="600" y="610" font-family="Arial, sans-serif" font-size="24" fill="#5AA8E5" text-anchor="middle">나만의 여행 지도</text>
+</svg>
+
