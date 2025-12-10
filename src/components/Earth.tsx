@@ -345,6 +345,7 @@ function FlagMarker({
   const groupRef = useRef<THREE.Group>(null);
   const pos = latLngToVector3(country.lat, country.lng);
   const [isVisible, setIsVisible] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
   
   // 지구 표면의 정확한 위치 (정규화된 방향 벡터)
   const direction = new THREE.Vector3(pos.x, pos.y, pos.z).normalize();
@@ -382,10 +383,13 @@ function FlagMarker({
       <Html
         center
         distanceFactor={6}
-        style={{ pointerEvents: 'none', ...hiddenStyle }}
+        style={{ pointerEvents: 'auto', ...hiddenStyle }}
         transform
       >
         <div
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
           style={{
             fontSize: `${24 + visits * 4}px`,
             filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.8))',
@@ -393,11 +397,60 @@ function FlagMarker({
             userSelect: 'none',
             textShadow: '0 0 10px rgba(0,0,0,0.7)',
             lineHeight: '1',
+            cursor: 'pointer',
           }}
         >
           {country.flag}
         </div>
       </Html>
+
+      {/* 툴팁 */}
+      {isHovered && isVisible && (
+        <Html
+          center
+          distanceFactor={6}
+          style={{ pointerEvents: 'none' }}
+          transform
+        >
+          <div
+            className="bg-white rounded-lg shadow-2xl p-1.5 max-w-[10rem] border-2 border-blue-300"
+            style={{
+              transform: country.lat >= 0 
+                ? 'translate(-50%, 20px)' // 북반구: 아래로
+                : 'translate(-50%, -100%)', // 남반구: 위로
+              marginTop: country.lat >= 0 ? '10px' : '-10px',
+              pointerEvents: 'none',
+            }}
+          >
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-sm">{country.flag}</span>
+              <h3 className="font-bold text-xs text-gray-800">{country.name}</h3>
+            </div>
+            
+            {country.attractions && country.attractions.length > 0 && (
+              <div className="mb-1">
+                <p className="text-[10px] font-semibold text-blue-600 mb-0.5">📍 주요 여행지</p>
+                <ul className="text-[10px] text-gray-700 space-y-0.5">
+                  {country.attractions.map((attraction, idx) => (
+                    <li key={idx}>• {attraction}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {country.info && country.info.length > 0 && (
+              <div>
+                <p className="text-[10px] font-semibold text-blue-600 mb-0.5">ℹ️ 국가 정보</p>
+                <ul className="text-[10px] text-gray-700 space-y-0.5">
+                  {country.info.map((info, idx) => (
+                    <li key={idx}>• {info}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </Html>
+      )}
 
     </group>
   );

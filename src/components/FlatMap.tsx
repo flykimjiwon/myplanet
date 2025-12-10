@@ -29,6 +29,9 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
   const [isFullscreen, setIsFullscreen] = useState(false);
   const fullscreenSvgRef = useRef<SVGSVGElement>(null);
   const [fullscreenButtonTop, setFullscreenButtonTop] = useState('calc(8px + 55px + 8px + 35px - 6px)');
+  const [hoveredCountry, setHoveredCountry] = useState<Country | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
   
   // 화면 크기에 따라 전체화면 버튼 위치 조정
   useEffect(() => {
@@ -243,6 +246,7 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
         {/* 평면 세계지도 배경 */}
         <div className="relative w-full h-full">
           <svg
+            ref={svgRef}
             viewBox="0 0 2000 1000"
             className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
@@ -758,8 +762,42 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
             const flagSize = 32 + visits * 5; // 국기 크기 증가
             const markerSize = 6 + visits; // 노란색 마커 크기 감소
 
+            // 툴팁 이벤트 핸들러
+            const handleMouseEnter = (e: React.MouseEvent<SVGGElement>) => {
+              setHoveredCountry(country);
+              if (svgRef.current) {
+                const rect = svgRef.current.getBoundingClientRect();
+                const svgX = (e.clientX - rect.left) / (rect.width / 2000);
+                const svgY = (e.clientY - rect.top) / (rect.height / 1000);
+                setTooltipPosition({ x: svgX, y: svgY });
+              }
+            };
+
+            const handleMouseLeave = () => {
+              setHoveredCountry(null);
+            };
+
+            const handleTouchStart = (e: React.TouchEvent<SVGGElement>) => {
+              e.preventDefault();
+              setHoveredCountry(country);
+              if (svgRef.current) {
+                const touch = e.touches[0];
+                const rect = svgRef.current.getBoundingClientRect();
+                const svgX = (touch.clientX - rect.left) / (rect.width / 2000);
+                const svgY = (touch.clientY - rect.top) / (rect.height / 1000);
+                setTooltipPosition({ x: svgX, y: svgY });
+              }
+            };
+
             return (
-              <g key={country.code} transform={`translate(${x}, ${y})`}>
+              <g 
+                key={country.code} 
+                transform={`translate(${x}, ${y})`}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                onTouchStart={handleTouchStart}
+                style={{ cursor: 'pointer' }}
+              >
                 {/* 글로우 효과 (작게) */}
                 <circle
                   r={markerSize + 4}
@@ -847,6 +885,51 @@ export default function FlatMap({ visitedCountries, countries, onSelectCountry }
           </g>
         ))}
       </svg>
+
+      {/* 툴팁 */}
+      {hoveredCountry && svgRef.current && (
+        <div
+          className="absolute z-50 bg-white rounded-lg shadow-2xl p-4 max-w-xs border-2 border-blue-300"
+          style={{
+            left: `${(tooltipPosition.x / 2000) * 100}%`,
+            top: `${(tooltipPosition.y / 1000) * 100}%`,
+            transform: 'translate(-50%, -100%)',
+            marginTop: '-10px',
+            pointerEvents: 'none',
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            setHoveredCountry(null);
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">{hoveredCountry.flag}</span>
+            <h3 className="font-bold text-lg text-gray-800">{hoveredCountry.name}</h3>
+          </div>
+          
+          {hoveredCountry.attractions && hoveredCountry.attractions.length > 0 && (
+            <div className="mb-2">
+              <p className="text-xs font-semibold text-blue-600 mb-1">📍 주요 여행지</p>
+              <ul className="text-xs text-gray-700 space-y-0.5">
+                {hoveredCountry.attractions.map((attraction, idx) => (
+                  <li key={idx}>• {attraction}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {hoveredCountry.info && hoveredCountry.info.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-blue-600 mb-1">ℹ️ 국가 정보</p>
+              <ul className="text-xs text-gray-700 space-y-0.5">
+                {hoveredCountry.info.map((info, idx) => (
+                  <li key={idx}>• {info}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* 전체화면 버튼 - "지구는 평평하다!" 카드 바로 아래에 2-3px 간격으로 배치 */}
       <div 
