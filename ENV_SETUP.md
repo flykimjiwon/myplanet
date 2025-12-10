@@ -21,6 +21,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://여기에_Project_URL_입력
 NEXT_PUBLIC_SUPABASE_ANON_KEY=여기에_anon_public_key_입력
 SUPABASE_SERVICE_ROLE_KEY=여기에_service_role_key_입력
 OPENAI_API_KEY=여기에_openai_api_key_입력
+ADMIN_EMAILS=admin@example.com,another@example.com
 ```
 
 ### 예시 (Project URL을 확인한 후)
@@ -30,11 +31,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 OPENAI_API_KEY=sk-proj-...
+ADMIN_EMAILS=admin@example.com,another@example.com
 ```
 
 **참고:**
 - Supabase 키는 `GET_SUPABASE_CREDENTIALS.md` 참고
 - OpenAI API 키는 https://platform.openai.com 에서 발급
+- `ADMIN_EMAILS`: 관리자 이메일 목록 (쉼표로 구분). 관리자는 하루 100회 추천 가능, 일반 사용자는 10회
 
 ## Project URL 찾는 방법
 

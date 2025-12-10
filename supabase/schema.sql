@@ -190,3 +190,36 @@ CREATE POLICY "Only service role can update exchange rates"
 CREATE TRIGGER update_exchange_rates_updated_at BEFORE UPDATE ON exchange_rates
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- 여행 추천 사용 횟수 테이블 (하루 3회 제한)
+CREATE TABLE IF NOT EXISTS travel_recommendations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  date DATE NOT NULL,
+  count INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
+-- 인덱스 생성
+CREATE INDEX IF NOT EXISTS idx_travel_recommendations_user_date ON travel_recommendations(user_id, date DESC);
+
+-- RLS 정책
+ALTER TABLE travel_recommendations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own recommendations"
+  ON travel_recommendations FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own recommendations"
+  ON travel_recommendations FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own recommendations"
+  ON travel_recommendations FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- updated_at 트리거
+CREATE TRIGGER update_travel_recommendations_updated_at BEFORE UPDATE ON travel_recommendations
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+

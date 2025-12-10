@@ -37,10 +37,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // gpt-5-nano: 가성비 좋은 모델 ($0.05/$0.005/$0.40)
-    // 참고: temperature는 지원하지 않음 (기본값 1 고정)
-    // max_tokens 대신 max_completion_tokens 사용
-    const model = 'gpt-5-nano';
+    // gpt-5-mini: 가성비 좋은 모델
+    const model = 'gpt-5-mini';
 
     const systemPrompt = `당신은 전문 여행 추천 AI 어시스턴트입니다. 사용자의 여행 선호도, 예산, 관심사에 맞춰 최적의 여행지를 추천해주세요. 
 다음 정보를 고려하여 친절하고 상세한 추천을 제공하세요:
@@ -52,13 +50,7 @@ export async function POST(request: NextRequest) {
 
 한국어로 답변하며, 이모지를 적절히 사용하여 친근하고 따뜻한 톤으로 대화하세요.`;
 
-    // gpt-5-nano 전용 설정
-    // 문제: reasoning_tokens가 모든 토큰을 사용하여 content가 비어있음
-    // 해결: max_completion_tokens를 늘려서 reasoning 이후에도 실제 content 생성 가능하도록
-    // - max_completion_tokens: 최대 출력 토큰 수 (reasoning + content 포함)
-    //   참고: reasoning_tokens가 많이 사용되므로 충분한 여유 필요
-    // - temperature: 지원하지 않음 (기본값 1 고정, 파라미터 제거)
-    // - stream: true - SSE 스트리밍 활성화
+    // gpt-5-mini 설정
     const requestBody = {
       model,
       messages: [
@@ -68,8 +60,9 @@ export async function POST(request: NextRequest) {
           content: msg.content
         }))
       ],
-      max_completion_tokens: 2000, // reasoning + content를 위해 충분한 토큰 할당
+      max_completion_tokens: 2000, // 충분한 토큰 할당
       stream: true, // SSE 스트리밍 활성화
+      // gpt-5-mini는 temperature 지원하지 않음 (기본값 1 고정)
     };
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
