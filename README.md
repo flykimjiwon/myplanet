@@ -52,7 +52,13 @@
 
 - **주요 여행지**: 1-2줄의 주요 관광지 정보
 - **국가 정보**: 1-2줄의 국가 기본 정보
-- **혜택 정보**: (향후 확장 예정)
+- **여행 일기**: 사진과 함께 여행 추억 기록
+
+### 🤖 AI 여행 추천 챗봇
+
+- **AI 기반 여행지 추천**: OpenAI GPT를 활용한 맞춤형 여행지 추천
+- **자연어 대화**: 예산, 선호도, 관심사에 맞춰 대화형 추천
+- **로그인 필수**: 보안을 위해 로그인한 사용자만 사용 가능
 
 ### 🎮 트래블마블 모드 상세 기능
 
@@ -84,10 +90,23 @@
 
 ### Frontend
 
-- **Next.js 16.0.7**: React 프레임워크 (App Router)
+- **Next.js 16.0.7**: React 프레임워크 (App Router, Proxy API)
 - **React 19.2.0**: UI 라이브러리
 - **TypeScript**: 타입 안정성
 - **Tailwind CSS 4**: 스타일링
+
+### Backend & Database
+
+- **Supabase**: 인증, 데이터베이스, 스토리지
+  - PostgreSQL 데이터베이스
+  - Row Level Security (RLS)
+  - 실시간 데이터 동기화
+  - 파일 스토리지
+
+### AI & API
+
+- **OpenAI GPT**: 여행지 추천 챗봇
+- **@supabase/ssr**: 서버 사이드 렌더링 지원
 
 ### 3D 그래픽스
 
@@ -100,37 +119,80 @@
 
 ### 데이터 저장
 
-- **LocalStorage**: 방문한 국가 데이터 및 평점/리뷰 저장
-- **IndexedDB**: (향후 확장용)
+- **Supabase**: 클라우드 데이터베이스 (인증, 방문 국가, 평점, 여행 일기)
+- **LocalStorage**: 비로그인 사용자용 임시 저장 (휘발성)
+- **Supabase Storage**: 여행 사진 저장
 
 ## 📁 프로젝트 구조
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx          # 루트 레이아웃
-│   ├── page.tsx             # 메인 페이지
-│   └── globals.css          # 전역 스타일
+│   ├── layout.tsx              # 루트 레이아웃
+│   ├── page.tsx                # 메인 페이지
+│   ├── globals.css             # 전역 스타일
+│   ├── login/                  # 로그인 페이지
+│   ├── signup/                 # 회원가입 페이지
+│   ├── mypage/                 # 마이페이지
+│   ├── admin/                  # 관리자 페이지
+│   ├── api/
+│   │   └── chat/               # AI 챗봇 API
+│   └── auth/
+│       └── callback/           # 인증 콜백
 ├── components/
-│   ├── BoardGame.tsx        # 트래블마블 모드
-│   ├── CountrySelector.tsx  # 국가 선택 사이드바
-│   ├── Earth.tsx            # 3D 지구본 컴포넌트
-│   ├── FlatMap.tsx          # 평평 모드 (2D 지도)
-│   ├── ModeToggle.tsx       # 모드 전환 토글
-│   └── Scene.tsx            # 3D 씬 설정
-└── lib/
-    ├── countries.ts         # 국가 데이터 (196개국)
-    ├── indexedDB.ts         # IndexedDB 유틸리티
-    └── localStorage.ts      # LocalStorage 유틸리티
+│   ├── BoardGame.tsx           # 트래블마블 모드
+│   ├── CountrySelector.tsx     # 국가 선택 사이드바
+│   ├── Earth.tsx               # 3D 지구본 컴포넌트
+│   ├── FlatMap.tsx             # 평평 모드 (2D 지도)
+│   ├── ModeToggle.tsx          # 모드 전환 토글
+│   ├── Scene.tsx               # 3D 씬 설정
+│   ├── AIChatbot.tsx           # AI 챗봇 컴포넌트
+│   ├── AIRobotButton.tsx       # AI 챗봇 버튼
+│   └── EmailVerificationBanner.tsx  # 이메일 인증 배너
+├── lib/
+│   ├── countries.ts            # 국가 데이터 (196개국)
+│   ├── auth.ts                 # 인증 유틸리티
+│   ├── supabase/
+│   │   ├── client.ts           # 클라이언트 Supabase
+│   │   ├── server.ts           # 서버 Supabase
+│   │   ├── visitedCountries.ts # 방문 국가 API
+│   │   ├── ratings.ts          # 평점 API
+│   │   ├── memories.ts         # 여행 일기 API
+│   │   └── storage.ts          # 파일 스토리지 API
+│   ├── indexedDB.ts            # IndexedDB 유틸리티 (레거시)
+│   └── localStorage.ts         # LocalStorage 유틸리티 (레거시)
+└── proxy.ts                    # Next.js 16 Proxy (인증 미들웨어)
 ```
 
 ## 🚀 시작하기
+
+### 사전 요구사항
+
+- Node.js 18+ 설치
+- Supabase 프로젝트 생성 (자세한 내용은 `SUPABASE_SETUP.md` 참고)
+- OpenAI API 키 (AI 챗봇 사용 시)
 
 ### 설치
 
 ```bash
 npm install
 ```
+
+### 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 입력:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+자세한 설정 방법은 다음 문서를 참고하세요:
+- `ENV_SETUP.md` - 환경 변수 설정 가이드
+- `GET_SUPABASE_CREDENTIALS.md` - Supabase 인증 정보 가져오기
+- `SUPABASE_SETUP.md` - Supabase 프로젝트 설정
 
 ### 개발 서버 실행
 
@@ -146,6 +208,10 @@ npm run dev
 npm run build
 npm start
 ```
+
+### 배포
+
+Vercel 배포 시 환경 변수 설정은 `VERCEL_ENV_SETUP.md`를 참고하세요.
 
 ## 🎨 디자인 컨셉
 
@@ -175,25 +241,34 @@ npm start
 
 ### 데이터 저장
 
-- 모든 데이터는 브라우저 LocalStorage에 저장
-- 페이지 새로고침 후에도 데이터 유지
-- 회원가입 기능 없이 즉시 사용 가능 (프로토타입)
+- **로그인 사용자**: Supabase 클라우드에 저장 (다중 기기 동기화)
+- **비로그인 사용자**: LocalStorage에 임시 저장 (새로고침 시 초기화)
+- **자동 동기화**: 로그인 상태에서 실시간 데이터 동기화
+- **여행 사진**: Supabase Storage에 저장
 
 ### 3D 인터랙션
 
 - **둥근 모드**: 마우스 드래그로 지구본 회전, 스크롤로 확대/축소
 - **트래블마블 모드**: 보드 드래그로 회전, 확대/축소 버튼 제공
 
+## ✅ 구현 완료
+
+- [x] 사용자 계정 시스템 (Supabase Auth)
+- [x] 클라우드 데이터 동기화 (Supabase)
+- [x] 여행 사진 업로드 (Supabase Storage)
+- [x] 여행 일기 기능 (트래블마블 모드)
+- [x] AI 여행 추천 챗봇 (OpenAI GPT)
+- [x] 모바일 반응형 UI 개선
+- [x] 인앱 브라우저 대응
+
 ## 🔮 향후 계획
 
-- [ ] 사용자 계정 시스템
-- [ ] 클라우드 데이터 동기화
-- [ ] 여행 사진 업로드 (IndexedDB 활용)
-- [ ] 여행 일기 기능
 - [ ] 친구와 비교 기능
 - [ ] 여행 통계 및 차트
 - [ ] 국가별 혜택 정보 추가
 - [ ] 소셜 공유 기능
+- [ ] 오프라인 모드 지원
+- [ ] 다국어 지원
 
 ## 📄 라이선스
 

@@ -41,14 +41,18 @@ Next.js에서는 여러 환경 변수 파일을 사용할 수 있으며, 우선�
 ### 필요한 환경 변수
 
 ```bash
-# Supabase
+# Supabase (필수)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# OpenAI
+# OpenAI (AI 챗봇 사용 시 필수)
 OPENAI_API_KEY=your_openai_api_key
 ```
+
+**참고:**
+- Supabase 설정: `GET_SUPABASE_CREDENTIALS.md` 참고
+- OpenAI API 키: https://platform.openai.com 에서 발급
 
 ## Vercel 배포 시
 
