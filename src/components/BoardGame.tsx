@@ -53,7 +53,20 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
   const [hoveredRating, setHoveredRating] = useState(0);
   const [selectedContinentGroup, setSelectedContinentGroup] = useState<string | null>(null);
   const [airplaneAngle, setAirplaneAngle] = useState(0);
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
+  const [isExchangeRatesOpen, setIsExchangeRatesOpen] = useState(false);
+  const [exchangeRatesPosition, setExchangeRatesPosition] = useState({ x: 0, y: 0 });
+  const [isDraggingExchangeRates, setIsDraggingExchangeRates] = useState(false);
+  const [exchangeRatesDragStart, setExchangeRatesDragStart] = useState({ x: 0, y: 0 });
   
+  // 모바일 감지 및 초기 상태 설정
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    setIsExchangeRatesOpen(!isMobile);
+    // 우측 중간 위치로 초기화
+    setExchangeRatesPosition({ x: 0, y: 0 });
+  }, []);
+
   // 비행기 애니메이션 - 지구본 주변을 천천히 회전
   useEffect(() => {
     const interval = setInterval(() => {
@@ -62,6 +75,50 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
     
     return () => clearInterval(interval);
   }, []);
+
+  // 환율 데이터 로드
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        const response = await fetch('https://open.er-api.com/v6/latest/KRW');
+        const data = await response.json();
+        if (data.rates) {
+          setExchangeRates(data.rates);
+        }
+      } catch (error) {
+        console.error('환율 로드 실패:', error);
+      }
+    };
+    
+    fetchExchangeRates();
+    // 1시간마다 갱신
+    const interval = setInterval(fetchExchangeRates, 3600000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 환율 포맷팅 (1 통화 = X 원)
+  const formatExchangeRate = (currency: string, rate: number): string => {
+    const oneUnitInKRW = 1 / rate;
+    if (oneUnitInKRW >= 1) {
+      return oneUnitInKRW.toFixed(2);
+    } else {
+      return oneUnitInKRW.toFixed(4);
+    }
+  };
+
+  // 주요 통화 목록
+  const majorCurrencies = [
+    { code: 'USD', name: '미국 달러', flag: '🇺🇸' },
+    { code: 'EUR', name: '유로', flag: '🇪🇺' },
+    { code: 'JPY', name: '일본 엔', flag: '🇯🇵' },
+    { code: 'CNY', name: '중국 위안', flag: '🇨🇳' },
+    { code: 'HKD', name: '홍콩 달러', flag: '🇭🇰' },
+    { code: 'TWD', name: '대만 달러', flag: '🇹🇼' },
+    { code: 'SGD', name: '싱가포르 달러', flag: '🇸🇬' },
+    { code: 'VND', name: '베트남 동', flag: '🇻🇳' },
+    { code: 'THB', name: '태국 바트', flag: '🇹🇭' },
+    { code: 'MYR', name: '말레이시아 링깃', flag: '🇲🇾' },
+  ];
   
   const rotateBoard = (delta: number) => setRotationZ((prev) => prev + delta);
 
@@ -296,12 +353,148 @@ export default function BoardGame({ visitedCountries, countries, onSelectCountry
     setIsDragging(false);
   };
 
+  // 환율표 드래그 핸들러
+  const handleExchangeRatesMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDraggingExchangeRates(true);
+    setExchangeRatesDragStart({ 
+      x: e.clientX - exchangeRatesPosition.x, 
+      y: e.clientY - exchangeRatesPosition.y 
+    });
+  };
+
+  const handleExchangeRatesMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingExchangeRates) return;
+    setExchangeRatesPosition({
+      x: e.clientX - exchangeRatesDragStart.x,
+      y: e.clientY - exchangeRatesDragStart.y
+    });
+  };
+
+  const handleExchangeRatesMouseUp = () => {
+    setIsDraggingExchangeRates(false);
+  };
+
+  // 환율표 터치 드래그 핸들러
+  const handleExchangeRatesTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length === 1) {
+      setIsDraggingExchangeRates(true);
+      setExchangeRatesDragStart({
+        x: e.touches[0].clientX - exchangeRatesPosition.x,
+        y: e.touches[0].clientY - exchangeRatesPosition.y
+      });
+    }
+  };
+
+  const handleExchangeRatesTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingExchangeRates || e.touches.length !== 1) return;
+    setExchangeRatesPosition({
+      x: e.touches[0].clientX - exchangeRatesDragStart.x,
+      y: e.touches[0].clientY - exchangeRatesDragStart.y
+    });
+  };
+
+  const handleExchangeRatesTouchEnd = () => {
+    setIsDraggingExchangeRates(false);
+  };
+
   return (
     <div className="w-full h-full relative overflow-auto" style={{ backgroundColor: '#FCECA3' }}>
       <div className="min-h-full flex items-center justify-center p-4 md:p-8 relative" style={{
         perspective: '1000px',
         perspectiveOrigin: 'center center'
       }}>
+        {/* 환율표 - 우측 중간, 드래그 가능 */}
+        <div 
+          className="absolute z-50 bg-white rounded-lg shadow-lg border-2 border-blue-300 transition-all"
+          style={{
+            right: exchangeRatesPosition.x === 0 ? '16px' : 'auto',
+            left: exchangeRatesPosition.x !== 0 ? 'auto' : undefined,
+            top: exchangeRatesPosition.y === 0 ? '50%' : undefined,
+            bottom: exchangeRatesPosition.y === 0 ? 'auto' : undefined,
+            transform: exchangeRatesPosition.x === 0 && exchangeRatesPosition.y === 0 
+              ? 'translateY(-50%)' 
+              : `translate(${exchangeRatesPosition.x}px, ${exchangeRatesPosition.y}px)`,
+            maxWidth: '280px',
+            cursor: isDraggingExchangeRates ? 'grabbing' : 'grab',
+            userSelect: 'none',
+          }}
+          onMouseDown={handleExchangeRatesMouseDown}
+          onMouseMove={handleExchangeRatesMouseMove}
+          onMouseUp={handleExchangeRatesMouseUp}
+          onMouseLeave={handleExchangeRatesMouseUp}
+          onTouchStart={handleExchangeRatesTouchStart}
+          onTouchMove={handleExchangeRatesTouchMove}
+          onTouchEnd={handleExchangeRatesTouchEnd}
+        >
+          {/* 헤더 - 드래그 영역 */}
+          <div 
+            className="flex items-center justify-between p-3 border-b-2 border-blue-200"
+            style={{ cursor: 'grab' }}
+            onMouseDown={(e) => {
+              if ((e.target as HTMLElement).closest('button')) return;
+              handleExchangeRatesMouseDown(e);
+            }}
+          >
+            <h3 className="font-bold text-sm md:text-base" style={{ color: '#163C69' }}>💱 환율 정보</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 hidden md:inline">기준: KRW</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExchangeRatesOpen(!isExchangeRatesOpen);
+                }}
+                className="w-6 h-6 rounded flex items-center justify-center transition-all active:scale-90 hover:bg-blue-100"
+                style={{ color: '#1F6FB8' }}
+              >
+                <span className="text-sm font-bold">
+                  {isExchangeRatesOpen ? '−' : '+'}
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          {/* 환율 목록 - 접기/펼치기 */}
+          {isExchangeRatesOpen && (
+            <>
+              <div className="p-3 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-1.5">
+                  {majorCurrencies.map((currency) => {
+                    const rate = exchangeRates[currency.code];
+                    return (
+                      <div 
+                        key={currency.code} 
+                        className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-blue-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-base">{currency.flag}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold text-gray-800 truncate">{currency.name}</div>
+                            <div className="text-[10px] text-gray-500">{currency.code}</div>
+                          </div>
+                        </div>
+                        {rate ? (
+                          <div className="text-right ml-2">
+                            <div className="text-xs font-bold" style={{ color: '#1F6FB8' }}>
+                              {formatExchangeRate(currency.code, rate)}원
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-400 ml-2">-</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="px-3 pb-2 pt-2 border-t border-gray-200 text-[10px] text-gray-500 text-center">
+                {Object.keys(exchangeRates).length > 0 ? '실시간 환율' : '로딩 중...'}
+              </div>
+            </>
+          )}
+        </div>
+
         {/* 확대/축소 버튼 */}
         <div className="absolute top-2 left-2 flex flex-col gap-2 z-50">
           <button
