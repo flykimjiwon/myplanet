@@ -5,6 +5,20 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
+// 테스트 계정 목록
+const TEST_ACCOUNTS = [
+  { email: 'test1@test.com', password: 'test123!', label: '테스트 계정 1' },
+  { email: 'test2@test.com', password: 'test123!', label: '테스트 계정 2' },
+  { email: 'test3@test.com', password: 'test123!', label: '테스트 계정 3' },
+  { email: 'test4@test.com', password: 'test123!', label: '테스트 계정 4' },
+  { email: 'test5@test.com', password: 'test123!', label: '테스트 계정 5' },
+  { email: 'test6@test.com', password: 'test123!', label: '테스트 계정 6' },
+  { email: 'test7@test.com', password: 'test123!', label: '테스트 계정 7' },
+  { email: 'test8@test.com', password: 'test123!', label: '테스트 계정 8' },
+  { email: 'test9@test.com', password: 'test123!', label: '테스트 계정 9' },
+  { email: 'test10@test.com', password: 'test123!', label: '테스트 계정 10' },
+];
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -12,11 +26,16 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (e?: React.FormEvent, testEmail?: string, testPassword?: string) => {
+    if (e) {
+      e.preventDefault();
+    }
     setError(null);
 
-    if (!email || !password) {
+    const loginEmail = testEmail || email;
+    const loginPassword = testPassword || password;
+
+    if (!loginEmail || !loginPassword) {
       setError('이메일과 비밀번호를 입력해주세요.');
       return;
     }
@@ -26,8 +45,8 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: loginEmail,
+        password: loginPassword,
       });
 
       if (loginError) {
@@ -45,6 +64,10 @@ export default function LoginPage() {
       setError('로그인 중 오류가 발생했습니다.');
       setLoading(false);
     }
+  };
+
+  const handleTestLogin = async (testAccount: typeof TEST_ACCOUNTS[0]) => {
+    await handleLogin(undefined, testAccount.email, testAccount.password);
   };
 
   return (
@@ -137,6 +160,34 @@ export default function LoginPage() {
             <Link href="/signup" className="font-bold underline" style={{ color: '#163C69' }}>
               회원가입
             </Link>
+          </p>
+        </div>
+
+        {/* 테스트 계정 로그인 버튼 */}
+        <div className="mt-8 pt-6 border-t-2" style={{ borderColor: '#5AA8E5' }}>
+          <p className="text-xs font-semibold mb-3 text-center" style={{ color: '#163C69' }}>
+            🧪 테스트 계정으로 로그인
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {TEST_ACCOUNTS.map((account) => (
+              <button
+                key={account.email}
+                type="button"
+                onClick={() => handleTestLogin(account)}
+                disabled={loading}
+                className="px-3 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                style={{
+                  backgroundColor: '#E3F2FD',
+                  border: '1px solid #5AA8E5',
+                  color: '#163C69',
+                }}
+              >
+                {account.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-center mt-2" style={{ color: '#5AA8E5' }}>
+            비밀번호는 자동 입력됩니다 (비밀번호 노출 없음)
           </p>
         </div>
       </div>
