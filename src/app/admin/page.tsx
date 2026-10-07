@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 interface User {
@@ -28,6 +28,10 @@ export default function AdminPage() {
   // 관리자 인증 확인
   useEffect(() => {
     const checkAdmin = async () => {
+      if (!isSupabaseConfigured()) {
+        setIsLoading(false);
+        return;
+      }
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
