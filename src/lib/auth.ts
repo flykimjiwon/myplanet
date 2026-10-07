@@ -1,10 +1,8 @@
-import { createClient } from './supabase/client'
+import { createClient, isSupabaseConfigured } from './supabase/client'
 
 // 현재 사용자 정보 가져오기
 export async function getCurrentUser() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return null
-  }
+  if (!isSupabaseConfigured()) return null
   const supabase = createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   

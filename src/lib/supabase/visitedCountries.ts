@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createClient, isSupabaseConfigured } from './client'
 
 export interface VisitedCountry {
   country_code: string
@@ -7,6 +7,7 @@ export interface VisitedCountry {
 
 // 방문한 국가 목록 가져오기
 export async function getVisitedCountries(): Promise<Map<string, number>> {
+  if (!isSupabaseConfigured()) return new Map()
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
